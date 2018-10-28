@@ -54,3 +54,12 @@ CONSTRAINT PK_Policias_Desahucios PRIMARY KEY (NumPlaca, ID_Desahucios),
 CONSTRAINT FK_NumPlaca_Policia_Policias_Desahucios FOREIGN KEY (NumPlaca) REFERENCES Policias (NumPlaca) ON DELETE NO ACTION ON UPDATE CASCADE,
 CONSTRAINT FK_ID_Desahucio_Policias_Desahucios FOREIGN KEY (ID_Desahucios) REFERENCES Desahucios (ID) ON DELETE NO ACTION ON UPDATE CASCADE
 )
+
+CREATE TABLE Desahucios_Asociadas (
+ID_Desahucio INT NOT NULL,
+Num_Socia INT NOT NULL,
+ISDetenido BIT NULL,
+CONSTRAINT PK_Desahucio_Asociada PRIMARY KEY (ID_Desahucio, Num_Socia),
+CONSTRAINT FK_Desahucio_Desahucio_Asociadas FOREIGN KEY (ID_Desahucio) REFERENCES Desahucios(ID) ON DELETE NO ACTION ON UPDATE NO ACTION,
+CONSTRAINT FK_Asociadas_Desahucio_Asociadas FOREIGN KEY (Num_Socia) REFERENCES Asociadas(Num_Socia) ON DELETE NO ACTION ON UPDATE NO ACTION,
+)
