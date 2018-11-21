@@ -11,7 +11,6 @@ NumPelos INT NULL,
 TipoRopa CHAR(1) NULL,
 NumSuerte TINYINT NULL,
 Minutos TINYINT NULL,
-
 --PK,FK,UQ
 CONSTRAINT PK_DatosRestrictivos PRIMARY KEY (ID),
 CONSTRAINT UQ_DatosRestrictivos UNIQUE (Nombre),
@@ -37,7 +36,7 @@ CONSTRAINT PK_DatosRelacionados PRIMARY KEY (NumMasgrande),
 
 --CHECK
 CONSTRAINT CK_PalabraTabu CHECK (PalabraTabu NOT IN ('Barcenas', 'Gurtel', 'Punica', 'Bankia', 'sobre') AND PalabraTabu NOT LIKE '%eo'),
-CONSTRAINT CK_NumRarito CHECK(NumRarito < 20 AND NumRarito % 2 = 0 OR NumRarito % 3 = 0 OR NumRarito % 5 = 0),
+CONSTRAINT CK_NumRarito CHECK(NumRarito < 20 AND NumRarito NOT IN (2,3,5,7,11,13,17,19)),
 CONSTRAINT CK_NumMasgrande CHECK (NumMasgrande BETWEEN NumRarito AND 1000),
 )
 
@@ -61,12 +60,14 @@ CONSTRAINT CK_OtroNumero CHECK (OtroNumero > ID AND OtroNumero < LimiteSuperior)
 CONSTRAINT CK_Etiqueta CHECK (Etiqueta NOT IN('pao', 'peo', 'pio' ,'puo')),
 )
 
---Preguntas
+--Preguntas DATOS RELACIONADOS
 --¿Deberíamos poner la misma restricción que en la columna correspondiente?
 --Pienso que no, puesto que al referirnos a la otra tabla tambien le acompañan sus restricciones
 --¿Qué ocurriría si la ponemos?
 -- Seria redundante
 --¿Y si no la ponemos?
 -- La restriccion seria siendo efectiva
+
+--PREGUNTAS DATOS A MOGOLLON
 --¿Puede tener valores menores que 20?
 -- No, puesto que la restriccion de NumRarito no deja tener valores menor que 20
