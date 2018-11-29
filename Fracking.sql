@@ -1,0 +1,136 @@
+CREATE DATABASE Fracking
+
+GO
+USE Fracking
+GO
+
+CREATE TABLE Parcelas (
+ID SMALLINT NOT NULL,
+Extension SMALLINT NULL,
+
+CONSTRAINT PK_Parcelas PRIMARY KEY (ID),
+)
+
+CREATE TABLE Limites (
+ID SMALLINT NOT NULL,
+Latitud SMALLINT NOT NULL,
+Longitud SMALLINT NOT NULL,
+
+CONSTRAINT PK_Limites PRIMARY KEY (ID),
+)
+
+CREATE TABLE Propietarios (
+ID SMALLINT NOT NULL,
+Nombre VARCHAR (25) NOT NULL,
+Apellidos VARCHAR (45) NOT NULL,
+Numero TINYINT NULL,
+
+CONSTRAINT PK_Propietarios PRIMARY KEY (ID),
+CONSTRAINT CK_Numero CHECK (Numero BETWEEN 1 AND 10),
+)
+
+CREATE TABLE Instituciones (
+Nombre CHAR (30) NOT NULL,
+Ciudad VARCHAR (40) NOT NULL,
+
+CONSTRAINT PK_Instituciones PRIMARY KEY (Nombre),
+--CONSTRAINT CK_Tipo CHECK (Nombre IN('Ayuntamiento','''''''''))
+)
+
+CREATE TABLE Politicos (
+ID SMALLINT NOT NULL,
+Nombre VARCHAR (25) NOT NULL,
+Apellidos VARCHAR (40) NOT NULL,
+Direccion VARCHAR (80) NULL,
+Categoria TINYINT NULL,
+ISAsistente BIT NOT NULL,
+NombreCurro CHAR (30) NOT NULL,
+
+CONSTRAINT PK_Politicos PRIMARY KEY (ID),
+CONSTRAINT FK_Politicos_Institucion FOREIGN KEY (NombreCurro) REFERENCES Instituciones (Nombre) ON DELETE NO ACTION ON UPDATE CASCADE, 
+)
+
+CREATE TABLE Funcionario (
+ID SMALLINT NOT NULL,
+Nombre VARCHAR (25) NOT NULL,
+Apellidos VARCHAR (40) NOT NULL,
+Direccion VARCHAR (80) NULL,
+Categoria TINYINT NULL,
+NombreCurro CHAR (30) NOT NULL,
+
+CONSTRAINT PK_Funcionario PRIMARY KEY (ID),
+CONSTRAINT FK_Funcionario_Institucion FOREIGN KEY (NombreCurro) REFERENCES Instituciones (Nombre) ON DELETE NO ACTION ON UPDATE CASCADE, 
+)
+
+CREATE TABLE Ecologistas (
+Nombre CHAR (40) NOT NULL,
+Telefono CHAR (9) NULL,
+
+CONSTRAINT PK_Ecologistas PRIMARY KEY (Nombre),
+)
+
+CREATE TABLE Actos (
+Nombre CHAR (30) NOT NULL,
+Lugar VARCHAR (60) NULL,
+Momento DATE NULL,
+NombreEcologista CHAR (40) NOT NULL,
+
+CONSTRAINT PK_Actos PRIMARY KEY (Nombre),
+CONSTRAINT FK_Actos_Ecologistas FOREIGN KEY (NombreEcologista) REFERENCES Ecologistas (Nombre) ON DELETE NO ACTION ON UPDATE CASCADE,
+)
+
+CREATE TABLE Espias (
+NombreClave CHAR (45) NOT NULL,
+Nombre VARCHAR (25) NOT NULL,
+Apellidos VARCHAR (45) NOT NULL,
+
+CONSTRAINT PK_Espias PRIMARY KEY (NombreClave),
+)
+
+CREATE TABLE PuntosDebiles (
+ID SMALLINT NOT NULL,
+Nombre VARCHAR (40) NOT NULL,
+
+CONSTRAINT PK_PuntosDebiles PRIMARY KEY (ID),
+)
+
+CREATE TABLE Parcelas_Limites (
+IDParcela SMALLINT NOT NULL,
+IDLimite SMALLINT NOT NULL,
+
+CONSTRAINT PK_Parcelas_Limites PRIMARY KEY (IDParcela, IDLimite),
+CONSTRAINT FK_ParcelasLimites_Parcelas FOREIGN KEY (IDParcela) REFERENCES Parcelas (ID) ON DELETE NO ACTION ON UPDATE CASCADE,
+CONSTRAINT FK_ParcelasLimites_Limites FOREIGN KEY (IDLimite) REFERENCES Limites (ID) ON DELETE NO ACTION ON UPDATE CASCADE,
+)
+
+CREATE TABLE Parcelas_Instituciones (
+IDParcela SMALLINT NOT NULL,
+NombreInstitucion CHAR (30) NOT NULL,
+
+CONSTRAINT PK_Parcelas_Instituciones PRIMARY KEY (IDParcela, NombreInstitucion),
+CONSTRAINT FK_ParcelasInstituciones_Parcelas FOREIGN KEY (IDParcela) REFERENCES Parcelas (ID) ON DELETE NO ACTION ON UPDATE CASCADE,
+CONSTRAINT FK_ParcelasInstituciones_Institucion FOREIGN KEY (NombreInstitucion) REFERENCES Instituciones (Nombre) ON DELETE NO ACTION ON UPDATE CASCADE,
+)
+
+CREATE TABLE Parcelas_Propietarios (
+IDParcela SMALLINT NOT NULL,
+IDPropietario SMALLINT NOT NULL,
+
+CONSTRAINT PK_Parcelas_Propietarios PRIMARY KEY (IDParcela, IDPropietario),
+CONSTRAINT FK_ParcelasPropietarios_Parcelas FOREIGN KEY (IDParcela) REFERENCES Parcelas (ID) ON DELETE NO ACTION ON UPDATE CASCADE,
+CONSTRAINT FK_ParcelasPropietarios_Propietarios FOREIGN KEY (IDPropietario) REFERENCES Propietarios (ID) ON DELETE NO ACTION ON UPDATE CASCADE,
+)
+
+CREATE TABLE Parcelas_Ecologistas (
+IDParcela SMALLINT NOT NULL,
+NombreEcologista CHAR (40) NOT NULL,
+
+CONSTRAINT PK_Parcelas_Ecologistas PRIMARY KEY (IDParcela, NombreEcologista),
+CONSTRAINT FK_ParcelasEcologistas_Parcelas FOREIGN KEY (IDParcela) REFERENCES Parcelas (ID) ON DELETE NO ACTION ON UPDATE CASCADE,
+CONSTRAINT FK_ParcelasEcologistas_Ecologista FOREIGN KEY (NombreEcologista) REFERENCES Ecologistas (Nombre) ON DELETE NO ACTION ON UPDATE CASCADE,
+)
+
+CREATE TABLE Debiles_Politicos (
+IDPuntoDebil SMALLINT NOT NULL,
+IDPolitico SMALLINT NOT NULL,
+)
