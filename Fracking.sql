@@ -4,6 +4,8 @@ GO
 USE Fracking
 GO
 
+--DROP DATABASE Fracking
+
 CREATE TABLE Parcelas (
 ID SMALLINT NOT NULL,
 Extension SMALLINT NULL,
@@ -34,23 +36,9 @@ Nombre CHAR (30) NOT NULL,
 Ciudad VARCHAR (40) NOT NULL,
 
 CONSTRAINT PK_Instituciones PRIMARY KEY (Nombre),
---CONSTRAINT CK_Tipo CHECK (Nombre IN('Ayuntamiento','''''''''))
 )
 
-CREATE TABLE Politicos (
-ID SMALLINT NOT NULL,
-Nombre VARCHAR (25) NOT NULL,
-Apellidos VARCHAR (40) NOT NULL,
-Direccion VARCHAR (80) NULL,
-Categoria TINYINT NULL,
-ISAsistente BIT NOT NULL,
-NombreCurro CHAR (30) NOT NULL,
-
-CONSTRAINT PK_Politicos PRIMARY KEY (ID),
-CONSTRAINT FK_Politicos_Institucion FOREIGN KEY (NombreCurro) REFERENCES Instituciones (Nombre) ON DELETE NO ACTION ON UPDATE CASCADE, 
-)
-
-CREATE TABLE Funcionario (
+CREATE TABLE Trabajadores (
 ID SMALLINT NOT NULL,
 Nombre VARCHAR (25) NOT NULL,
 Apellidos VARCHAR (40) NOT NULL,
@@ -58,8 +46,9 @@ Direccion VARCHAR (80) NULL,
 Categoria TINYINT NULL,
 NombreCurro CHAR (30) NOT NULL,
 
-CONSTRAINT PK_Funcionario PRIMARY KEY (ID),
-CONSTRAINT FK_Funcionario_Institucion FOREIGN KEY (NombreCurro) REFERENCES Instituciones (Nombre) ON DELETE NO ACTION ON UPDATE CASCADE, 
+CONSTRAINT PK_Trabajadores PRIMARY KEY (ID),
+CONSTRAINT FK_Trabajadores_Institucion FOREIGN KEY (NombreCurro) REFERENCES Instituciones (Nombre) ON DELETE NO ACTION ON UPDATE CASCADE, 
+CONSTRAINT CK_Categoria CHECK(Categoria BETWEEN 1 AND 4),
 )
 
 CREATE TABLE Ecologistas (
@@ -67,6 +56,7 @@ Nombre CHAR (40) NOT NULL,
 Telefono CHAR (9) NULL,
 
 CONSTRAINT PK_Ecologistas PRIMARY KEY (Nombre),
+CONSTRAINT CK_Telefono CHECK (Telefono LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
 )
 
 CREATE TABLE Actos (
@@ -130,7 +120,30 @@ CONSTRAINT FK_ParcelasEcologistas_Parcelas FOREIGN KEY (IDParcela) REFERENCES Pa
 CONSTRAINT FK_ParcelasEcologistas_Ecologista FOREIGN KEY (NombreEcologista) REFERENCES Ecologistas (Nombre) ON DELETE NO ACTION ON UPDATE CASCADE,
 )
 
-CREATE TABLE Debiles_Politicos (
+CREATE TABLE Debiles_Trabajadores (
 IDPuntoDebil SMALLINT NOT NULL,
-IDPolitico SMALLINT NOT NULL,
+IDTrabajador SMALLINT NOT NULL,
+
+CONSTRAINT PK_Debiles_Trabajadores PRIMARY KEY (IDPuntoDebil, IDTrabajador),
+CONSTRAINT FK_DebilesTrabajadores_Debiles FOREIGN KEY (IDPuntoDebil) REFERENCES PuntosDebiles(ID) ON DELETE NO ACTION ON UPDATE CASCADE,
+CONSTRAINT FK_DebilesTrabajadores_Trabajadores FOREIGN KEY (IDTrabajador) REFERENCES Trabajadores(ID) ON DELETE NO ACTION ON UPDATE CASCADE,
+)
+
+CREATE TABLE Actos_Espias (
+NombreActo CHAR (30) NOT NULL,
+NombreClaveEspia CHAR (45) NOT NULL,
+
+CONSTRAINT PK_Actos_Espias PRIMARY KEY (NombreActo, NombreClaveEspia),
+CONSTRAINT FK_ActosEspias_Actos FOREIGN KEY (NombreActo) REFERENCES Actos(Nombre) ON DELETE NO ACTION ON UPDATE CASCADE,
+CONSTRAINT FK_ActosEspias_Espias FOREIGN KEY (NombreClaveEspia) REFERENCES Espias(NombreClave) ON DELETE NO ACTION ON UPDATE CASCADE,
+)
+
+CREATE TABLE Actos_Trabajadores (
+NombreActo CHAR (30) NOT NULL,
+IDTrabajador SMALLINT NOT NULL,
+ISActuan BIT NOT NULL,
+
+CONSTRAINT PK_Actos_Trabajadores PRIMARY KEY (NombreActo, IDTrabajador),
+CONSTRAINT FK_ActosTrabajadores_Actos FOREIGN KEY (NombreActo) REFERENCES Actos(Nombre) ON DELETE NO ACTION ON UPDATE CASCADE,
+CONSTRAINT FK_ActosTrabajadores_Trabajadores FOREIGN KEY (IDTrabajador) REFERENCES Trabajadores(ID) ON DELETE NO ACTION ON UPDATE CASCADE,
 )
