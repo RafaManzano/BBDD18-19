@@ -1,0 +1,157 @@
+CREATE DATABASE Politica
+
+GO 
+USE Politica
+GO
+
+--DROP DATABASE Politica
+CREATE TABLE Formaciones (
+ID SMALLINT NOT NULL,
+NombreCompleto VARCHAR (60) NOT NULL,
+NombreAbreviado VARCHAR (25) NOT NULL,
+Fecha_Fundacion DATE NULL,
+
+CONSTRAINT PK_Formaciones PRIMARY KEY (ID),
+CONSTRAINT CK_Fecha CHECK (Fecha_Fundacion < CURRENT_TIMESTAMP)
+)
+
+CREATE TABLE Partidos (
+IDFormacion SMALLINT NOT NULL,
+Ideologia VARCHAR (30) NOT NULL,
+NombreLider VARCHAR (30) NULL,
+
+CONSTRAINT PK_Partidos PRIMARY KEY (IDFormacion),
+CONSTRAINT FK_Partidos_Formaciones FOREIGN KEY (IDFormacion) REFERENCES Formaciones(ID) ON DELETE NO ACTION ON UPDATE NO ACTION,
+)
+
+CREATE TABLE Coaliciones (
+IDFormacion SMALLINT NOT NULL,
+Ambito VARCHAR (40) NOT NULL,
+
+CONSTRAINT PK_Coaliciones PRIMARY KEY (IDFormacion),
+CONSTRAINT FK_Coaliciones_Formaciones FOREIGN KEY (IDFormacion) REFERENCES Formaciones(ID) ON DELETE NO ACTION ON UPDATE NO ACTION,
+CONSTRAINT CK_Ambito CHECK (Ambito IN('Local','Provincial','Regional','Nacional','Europea')),
+)
+
+CREATE TABLE Circunscripciones (
+Codigo INT NOT NULL,
+Nombre VARCHAR (20) NOT NULL,
+
+CONSTRAINT PK_Circunscripciones PRIMARY KEY (Codigo),
+)
+
+CREATE TABLE Mesas (
+ID INT NOT NULL,
+NumeroDistrito SMALLINT NOT NULL,
+NumeroSeccion SMALLINT NOT NULL,
+LetraMesa CHAR (1) NOT NULL,
+NumeroElectores INT NOT NULL,
+CodigoCircunscripcion INT NOT NULL,
+
+CONSTRAINT PK_Mesas PRIMARY KEY (ID),
+CONSTRAINT FK_Mesas_Circunscripciones FOREIGN KEY (CodigoCircunscripcion) REFERENCES Circunscripciones(Codigo) ON DELETE NO ACTION ON UPDATE CASCADE,
+CONSTRAINT CK_NumeroElectores CHECK (NumeroElectores BETWEEN 10 AND 1500),
+)
+
+CREATE TABLE Candidaturas (
+ID INT NOT NULL,
+Nombre VARCHAR (30) NOT NULL,
+IDFormacion SMALLINT NOT NULL,
+CodigoCircunscripcion INT NOT NULL,
+
+CONSTRAINT PK_Candidaturas PRIMARY KEY (ID),
+CONSTRAINT FK_Candidaturas_Formacion FOREIGN KEY (IDFormacion) REFERENCES Formaciones(ID) ON DELETE NO ACTION ON UPDATE CASCADE,
+CONSTRAINT FK_Candidaturas_Circunscripciones FOREIGN KEY (CodigoCircunscripcion) REFERENCES Circunscripciones(Codigo) ON DELETE NO ACTION ON UPDATE CASCADE,
+)
+
+
+CREATE TABLE Interventores (
+DNI CHAR (9) NOT NULL,
+Nombre VARCHAR (35) NOT NULL,
+Apellidos VARCHAR (50) NOT NULL,
+Fecha_Nac DATE NULL,
+IDCandidatura INT NOT NULL,
+IDMesa INT NOT NULL,
+
+CONSTRAINT PK_Interventores PRIMARY KEY (DNI),
+CONSTRAINT FK_Interventores_Candidaturas FOREIGN KEY (IDCandidatura) REFERENCES Candidaturas (ID) ON DELETE NO ACTION ON UPDATE CASCADE,
+CONSTRAINT FK_Interventores_Mesas FOREIGN KEY (IDMesa) REFERENCES Mesas (ID) ON DELETE NO ACTION ON UPDATE NO ACTION,
+CONSTRAINT CK_DNI_Interventores CHECK (DNI LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][A-Z]'),
+)
+CREATE TABLE Candidatos (
+DNI CHAR (9) NOT NULL,
+Nombre VARCHAR (30) NOT NULL,
+Apellidos VARCHAR (50) NOT NULL,
+Fecha_Nac DATE NULL,
+OrdenEleccion TINYINT NOT NULL,
+IDCandidatura INT NOT NULL,
+
+CONSTRAINT PK_Candidatos PRIMARY KEY (DNI),
+CONSTRAINT FK_Candidatos_Candidatura FOREIGN KEY (IDCandidatura) REFERENCES Candidaturas (ID) ON DELETE NO ACTION ON UPDATE CASCADE,
+CONSTRAINT CK_DNI_Candidatos CHECK (DNI LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][A-Z]'),
+)
+
+
+CREATE TABLE Apoderadores (
+DNI CHAR (9) NOT NULL,
+Nombre VARCHAR (35) NOT NULL,
+Apellidos VARCHAR (50) NOT NULL,
+Fecha_Nac DATE NULL,
+DNICandidato CHAR (9) NOT NULL,
+
+CONSTRAINT PK_Apoderadores PRIMARY KEY (DNI),
+CONSTRAINT FK_Apoderadores_Candidatos FOREIGN KEY (DNICandidato) REFERENCES Candidatos (DNI) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT CK_DNI_Apoderadores CHECK (DNI LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][A-Z]'),
+)
+
+CREATE TABLE Representantes (
+ID SMALLINT NOT NULL,
+Nombre VARCHAR (30) NOT NULL,
+Apellidos VARCHAR (50) NOT NULL,
+Telefono CHAR (9) NULL,
+
+CONSTRAINT PK_Representantes PRIMARY KEY (ID),
+)
+
+
+CREATE TABLE VotaCongreso (
+IDMesa INT NOT NULL,
+IDCandidatura INT NOT NULL,
+NumeroVotos INT NOT NULL
+
+CONSTRAINT PK_VotaCongreso PRIMARY KEY (IDMesa, IDCandidatura),
+CONSTRAINT FK_VotaCongreso_Mesas FOREIGN KEY (IDMesa) REFERENCES Mesas (ID) ON DELETE NO ACTION ON UPDATE NO ACTION,
+CONSTRAINT FK_VotaCongreso_Candidaturas FOREIGN KEY (IDCandidatura) REFERENCES Candidaturas (ID) ON DELETE NO ACTION ON UPDATE NO ACTION,
+CONSTRAINT CK_NumeroVotosCongreso CHECK (NumeroVotos > 0),
+)
+
+CREATE TABLE VotaSenado (
+IDMesa INT NOT NULL,
+DNICandidato CHAR(9) NOT NULL,
+NumeroVotos INT NOT NULL
+
+CONSTRAINT PK_VotaSenado PRIMARY KEY (IDMesa, DNICandidato),
+CONSTRAINT FK_VotaSenado_Mesas FOREIGN KEY (IDMesa) REFERENCES Mesas (ID) ON DELETE NO ACTION ON UPDATE NO ACTION,
+CONSTRAINT FK_VotaSenado_Candidatos FOREIGN KEY (DNICandidato) REFERENCES Candidatos (DNI) ON DELETE NO ACTION ON UPDATE CASCADE,
+CONSTRAINT CK_NumeroVotosSenado CHECK (NumeroVotos > 0),
+)
+
+CREATE TABLE PartidosCoaliciones (
+IDPartido SMALLINT NOT NULL,
+IDCoalicion SMALLINT NOT NULL,
+
+CONSTRAINT PK_PartidosCoaliciones PRIMARY KEY (IDPartido, IDCoalicion),
+CONSTRAINT FK_PartidosCoaliciones_Partidos FOREIGN KEY (IDPartido) REFERENCES Partidos(IDFormacion) ON DELETE NO ACTION ON UPDATE NO ACTION,
+CONSTRAINT FK_PartidosCoaliciones_Coaliciones FOREIGN KEY (IDCoalicion) REFERENCES Coaliciones(IDFormacion) ON DELETE NO ACTION ON UPDATE NO ACTION,
+)
+
+CREATE TABLE Direcciones (
+ID INT NOT NULL,
+Nombre VARCHAR (80) NOT NULL,
+Descripcion VARCHAR (1500) NULL,
+IDMesa INT NOT NULL,
+
+CONSTRAINT PK_Direcciones PRIMARY KEY (ID),
+CONSTRAINT FK_Direcciones_Mesas FOREIGN KEY (IDMesa) REFERENCES Mesas (ID) ON DELETE NO ACTION ON UPDATE CASCADE,
+
+)
