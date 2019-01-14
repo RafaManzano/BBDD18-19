@@ -51,3 +51,14 @@ SELECT * FROM Orders
 
 SELECT CAST(AVG(ShippedDate - OrderDate) AS smalldatetime) AS Average FROM Orders
 
+--9. ID del distribuidor y número de pedidos enviados a través de ese distribuidor.
+SELECT * FROM Orders
+
+SELECT ShipVia, Count(*) AS NumberOfOrders FROM Orders
+GROUP BY ShipVia
+
+--10. ID de cada proveedor y número de productos distintos que nos suministra.
+SELECT * FROM Products
+
+SELECT DISTINCT SupplierID, Count(*) AS NumberOfProducts FROM Products
+GROUP BY SupplierID
