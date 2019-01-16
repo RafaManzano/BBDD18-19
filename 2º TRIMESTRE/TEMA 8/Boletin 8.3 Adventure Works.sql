@@ -1,4 +1,4 @@
-USE AdventureWorks2012
+USE AdventureWorks2014
 
 --Consultas sencillas
 --1.Nombre del producto, código y precio, ordenado de mayor a menor precio
@@ -45,10 +45,30 @@ SELECT COUNT(*) AS NumberOfUnits, ProductID, YEAR(ModifiedDate) AS [Year] FROM S
 GROUP BY ProductID, YEAR(ModifiedDate)
 
 --8.Nombre completo, compañía y total facturado a cada cliente
+--SELECT * FROM Person.Person
+
 
 --9.Número de producto, nombre y precio de todos aquellos en cuya descripción aparezcan las palabras "race”, "competition” o "performance”
+SELECT * FROM Production.Product
+
+SELECT ProductID, Name, ListPrice FROM Production.Product
+WHERE Name LIKE('%race%') OR Name LIKE ('%competition%') OR Name LIKE ('%performance%') 
 
 --Consultas avanzadas
 --10.Facturación total en cada país
+SELECT * FROM Sales.SalesTerritory
+
+SELECT CountryRegionCode, SUM(SalesYTD) AS TotalBilled FROM Sales.SalesTerritory
+GROUP BY CountryRegionCode
+
 --11.Facturación total en cada Estado
+SELECT * FROM Sales.SalesTerritory
+
+SELECT [Group], SUM(SalesYTD) AS TotalBilled FROM Sales.SalesTerritory
+GROUP BY [Group]
+
 --12.Margen medio de beneficios y total facturado en cada país
+SELECT * FROM Sales.SalesTerritory
+
+SELECT CountryRegionCode, AVG(SalesYTD) AS TotalBilled FROM Sales.SalesTerritory
+GROUP BY CountryRegionCode
