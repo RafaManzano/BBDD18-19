@@ -103,3 +103,4 @@ SET pub_name = 'Machen Wücher',
 WHERE pub_name = 'GGG&G' OR city = 'Mnchen'
 --ROLLBACK
 --COMMIT
+
