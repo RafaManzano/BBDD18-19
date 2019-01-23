@@ -37,3 +37,28 @@ SELECT C.CategoryID, C.CategoryName, SUM(OD.UnitPrice * OD.Quantity) AS Total  F
 INNER JOIN Categories AS C ON C.CategoryID = P.CategoryID
 INNER JOIN [Order Details] AS OD ON P.ProductID = OD.ProductID
 GROUP BY C.CategoryName, C.CategoryID
+
+--8. Total de ventas en US$ de cada empleado cada año (nombre, apellidos, dirección).
+SELECT E.FirstName, E.LastName, E.Address ,SUM(OD.UnitPrice * OD.Quantity) AS Total FROM [Order Details] AS OD
+INNER JOIN Orders AS O ON O.OrderID = OD.OrderID
+INNER JOIN Employees AS E ON E.EmployeeID = O.EmployeeID
+GROUP BY E.FirstName, E.LastName, E.Address 
+
+--9. Ventas de cada producto en el año 97. Nombre del producto y unidades.
+SELECT P.ProductName, COUNT(OD.ProductID) AS Units, CAST(SUM(OD.UnitPrice * OD.Quantity - OD.Discount) AS DECIMAL(10,2)) AS Sales FROM Products AS P
+INNER JOIN [Order Details] AS OD ON P.ProductID = OD.ProductID
+INNER JOIN Orders AS O ON O.OrderID = OD. OrderID
+WHERE YEAR(O.OrderDate) = 1997
+GROUP BY P.ProductName, YEAR(O.OrderDate)
+
+--10. Cuál es el producto del que hemos vendido más unidades en cada país.
+
+--11. Empleados (nombre y apellidos) que trabajan a las órdenes de Andrew Fuller.
+SELECT ESB.FirstName, ESB.LastName FROM Employees AS EJE
+INNER JOIN Employees AS ESB ON ESB.ReportsTo = EJE.EmployeeID
+WHERE EJE.FirstName = 'Andrew' AND EJE.LastName = 'Fuller'
+
+--12. Número de subordinados que tiene cada empleado, incluyendo los que no tienen ninguno. Nombre, apellidos, ID.
+SELECT EJE.EmployeeID, EJE.FirstName, EJE.LastName, COUNT(EJE.EmployeeID) AS Subordinados FROM Employees AS EJE
+FULL JOIN Employees AS ESB ON ESB.ReportsTo = EJE.EmployeeID 
+GROUP BY EJE.EmployeeID, EJE.FirstName, EJE.LastName
