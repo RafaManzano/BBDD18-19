@@ -84,3 +84,17 @@ SELECT COUNT(O.CustomerID) AS BestCustomer, C.Country FROM Customers AS C
 INNER JOIN Orders AS O ON C.CustomerID = O.CustomerID
 GROUP BY C.Country
 
+--13. Número de productos diferentes que nos compra cada cliente. Incluye el nombre y apellidos del cliente y su dirección completa.
+SELECT COUNT(DISTINCT P.ProductID) AS ProductsNumber,C.CustomerID,C.ContactName, C.Address, C.City FROM Products AS P
+INNER JOIN [Order Details] AS OD ON OD.ProductID = P.ProductID
+INNER JOIN Orders AS O ON OD.OrderID = O.OrderID
+INNER JOIN Customers AS C ON O.CustomerID = C.CustomerID
+GROUP BY C.CustomerID,C.ContactName, C.Address, C.City 
+
+--14. Clientes que nos compran más de cinco productos diferentes.
+
+--15.Vendedores (nombre y apellidos) que han vendido una mayor cantidad que la media en US $ en el año 97.
+SELECT AVG((SELECT OD.Quantity * OD.UnitPrice FROM [Order Details] AS OD)) AS Total, YEAR(O.OrderDate) AS Year FROM Products AS P
+INNER JOIN [Order Details] AS OD ON OD.ProductID = P.ProductID
+INNER JOIN Orders AS O ON O.OrderID = OD.OrderID
+GROUP BY YEAR(O.OrderDate)
