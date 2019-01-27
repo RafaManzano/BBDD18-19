@@ -59,6 +59,7 @@ INNER JOIN Employees AS ESB ON ESB.ReportsTo = EJE.EmployeeID
 WHERE EJE.FirstName = 'Andrew' AND EJE.LastName = 'Fuller'
 
 --12. Número de subordinados que tiene cada empleado, incluyendo los que no tienen ninguno. Nombre, apellidos, ID.
-SELECT EJE.EmployeeID, EJE.FirstName, EJE.LastName, COUNT(EJE.EmployeeID) AS Subordinados FROM Employees AS EJE
-FULL JOIN Employees AS ESB ON ESB.ReportsTo = EJE.EmployeeID 
+SELECT EJE.EmployeeID, EJE.FirstName, EJE.LastName, COUNT(ESB.EmployeeID) AS Subordinados 
+FROM Employees AS EJE
+LEFT JOIN Employees AS ESB ON ESB.ReportsTo = EJE.EmployeeID 
 GROUP BY EJE.EmployeeID, EJE.FirstName, EJE.LastName
