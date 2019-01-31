@@ -95,18 +95,24 @@ GROUP BY YEAR(O.OrderDate)
 
 --11. Cifra de ventas de cada producto en el año 97 y su aumento o disminución respecto al año anterior en US $ y en %.
 --Cifra de ventas del año 1997
-SELECT Sales97.Quantity, (Sales97.Sales97 - Sales96.Sales96) AS Difference FROM (
-				SELECT SUM(OD.Quantity) AS Quantity, SUM(OD.Quantity * OD.UnitPrice) AS Sales97, P.ProductID FROM Products AS P
-				INNER JOIN [Order Details] AS OD ON OD.ProductID = P.ProductID
+SELECT DISTINCT Sales97.Quantity, (Sales97.Sales97 - Sales96.Sales96) AS [Difference $], ((Sales97.Sales97 - Sales96.Sales96) / Sales96.Sales96) * 100 AS [Percentage %], P.ProductID, P.ProductName FROM (
+				--Cifra de ventas del año 97
+				SELECT SUM(OD.Quantity) AS Quantity, SUM(OD.Quantity * OD.UnitPrice) AS Sales97, OD.ProductID FROM [Order Details] AS OD 
 				INNER JOIN Orders AS O ON O.OrderID = OD.OrderID
-				WHERE YEAR(O.OrderDate) = 1997 ) AS Sales97
+				WHERE YEAR(O.OrderDate) = 1997 
+				GROUP BY OD.ProductID) AS Sales97
+				
 	INNER JOIN (
-				SELECT SUM(OD.Quantity) AS Quantity, SUM(OD.Quantity * OD.UnitPrice) AS Sales96, P.ProductID FROM Products AS P
-				INNER JOIN [Order Details] AS OD ON OD.ProductID = P.ProductID
+				--Cifra de ventas del año 96
+				SELECT SUM(OD.Quantity) AS Quantity, SUM(OD.Quantity * OD.UnitPrice) AS Sales96, OD.ProductID FROM [Order Details] AS OD 
 				INNER JOIN Orders AS O ON O.OrderID = OD.OrderID
-				WHERE YEAR(O.OrderDate) = 1996 ) AS Sales96 
-	ON Sales96.ProductID = Sales97.ProductID
+				WHERE YEAR(O.OrderDate) = 1996 
+				GROUP BY OD.ProductID) AS Sales96 
 
+	ON Sales96.ProductID = Sales97.ProductID
+	INNER JOIN Products AS P ON P.ProductID = Sales97.ProductID
+	ORDER BY P.ProductID ASC
+	
 
 
 --12. Mejor cliente (el que más nos compra) de cada país.
