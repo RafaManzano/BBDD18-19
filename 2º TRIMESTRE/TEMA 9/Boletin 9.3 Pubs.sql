@@ -70,3 +70,37 @@ INNER JOIN sales AS S ON S.title_id = T.title
 GROUP BY T.title_id, T.title, T.type
 
 --10. Número de ejemplares de todos sus libros que ha vendido cada autor.
+SELECT SUM(S.qty) AS Copies, A.au_id, A.au_fname, A.au_lname FROM titles AS T
+INNER JOIN sales AS S ON S.title_id = T.title_id
+INNER JOIN titleauthor AS TA ON TA.title_id = T.title_id
+INNER JOIN authors AS A ON A.au_id = TA.au_id
+GROUP BY A.au_id, A.au_fname, A.au_lname
+
+--11. Número de empleados de cada categoría (jobs).
+SELECT COUNT(E.emp_id) AS Employees, J.job_id FROM jobs AS J
+INNER JOIN employee AS E ON E.job_id = J.job_id
+GROUP BY J.job_id
+
+--12. Número de empleados de cada categoría (jobs) que tiene cada editorial, 
+--incluyendo aquellas categorías en las que no haya ningún empleado.
+
+--Número de empleados de cada categoría (jobs). --Preguntar a leo, tiene que haber un outer join pero no me sale correctamente, no estoy seguro si esta bien planteada la subconsulta
+SELECT EmployeesByCategory.Employees, EmployeesByCategory.job_id, P.pub_id FROM employee AS E
+INNER JOIN (
+SELECT COUNT(E.emp_id) AS Employees, J.job_id FROM jobs AS J
+INNER JOIN employee AS E ON E.job_id = J.job_id
+GROUP BY J.job_id  ) AS EmployeesByCategory ON EmployeesByCategory.job_id = E.job_id
+INNER JOIN publishers AS P ON P.pub_id = E.pub_id
+GROUP BY P.pub_id, EmployeesByCategory.job_id,EmployeesByCategory.Employees
+
+--13. Autores que han escrito libros de dos o más tipos diferentes
+SELECT COUNT(t.title_id) AS BooksNumber, A.au_id, A.au_fname, A.au_lname, COUNT(T.type) AS Type FROM authors AS A
+INNER JOIN titleauthor AS TA ON TA.au_id = A.au_id
+INNER JOIN titles AS T ON T.title_id = TA.title_id
+GROUP BY A.au_id, A.au_fname, A.au_lname
+--HAVING COUNT(T.type) > 2
+
+SELECT COUNT(t.title_id) AS BooksNumber, A.au_id, A.au_fname, A.au_lname FROM titles AS T 
+INNER JOIN titleauthor AS TA ON T.title_id = TA.title_id
+RIGHT JOIN authors AS A ON A.au_id = TA.au_id
+GROUP BY A.au_id, A.au_fname, A.au_lname
