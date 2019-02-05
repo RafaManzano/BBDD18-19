@@ -94,13 +94,16 @@ INNER JOIN publishers AS P ON P.pub_id = E.pub_id
 GROUP BY P.pub_id, EmployeesByCategory.job_id,EmployeesByCategory.Employees
 
 --13. Autores que han escrito libros de dos o más tipos diferentes
-SELECT COUNT(t.title_id) AS BooksNumber, A.au_id, A.au_fname, A.au_lname, COUNT(T.type) AS Type FROM authors AS A
+SELECT A.au_id, A.au_fname, A.au_lname, COUNT(T.type) AS Type FROM authors AS A
 INNER JOIN titleauthor AS TA ON TA.au_id = A.au_id
 INNER JOIN titles AS T ON T.title_id = TA.title_id
 GROUP BY A.au_id, A.au_fname, A.au_lname
---HAVING COUNT(T.type) > 2
+HAVING COUNT(T.type) > 1
 
-SELECT COUNT(t.title_id) AS BooksNumber, A.au_id, A.au_fname, A.au_lname FROM titles AS T 
-INNER JOIN titleauthor AS TA ON T.title_id = TA.title_id
-RIGHT JOIN authors AS A ON A.au_id = TA.au_id
-GROUP BY A.au_id, A.au_fname, A.au_lname
+--14. Empleados que no trabajan actualmente en editoriales que han publicado libros cuya columna notes contenga la palabra "and”
+SELECT fname, lname FROM employee
+EXCEPT
+SELECT E.fname, E.lname FROM publishers AS P
+INNER JOIN employee AS E ON E.pub_id = P.pub_id
+INNER JOIN titles AS T ON T.pub_id = P.pub_id
+WHERE T.notes NOT LIKE('%and%')
