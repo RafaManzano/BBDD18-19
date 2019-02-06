@@ -21,7 +21,7 @@ GROUP BY LML.ID
 --No puedo sumar los 30 segundos ni realizar la media
 SELECT * FROM LM_Itinerarios
 
-SELECT AVG(SUM(TiempoEstimado + 30)) AS TiempoMedio, Linea FROM LM_Itinerarios
+SELECT * FROM LM_Itinerarios
 GROUP BY Linea
 
 --5. Indica el número total de pasajeros que entran (a pie) cada día por cada estación y los que salen del metro en la misma.

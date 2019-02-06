@@ -1,4 +1,5 @@
 USE Northwind
+SELECT * FROM Products
 
 --1. Nombre de los proveedores y número de productos que nos vende cada uno
 SELECT S.ContactName, COUNT(P.ProductID) AS ProductsNumber FROM Suppliers AS S
@@ -52,6 +53,23 @@ WHERE YEAR(O.OrderDate) = 1997
 GROUP BY P.ProductName, YEAR(O.OrderDate)
 
 --10. Cuál es el producto del que hemos vendido más unidades en cada país.
+--Suma de las cantidades por productos
+SELECT DISTINCT SUM(OD.Quantity) AS Maximo, P.ProductID FROM Orders AS O
+INNER JOIN [Order Details] AS OD ON OD.OrderID = O.OrderID
+INNER JOIN Products AS P ON P.ProductID = OD.ProductID
+GROUP BY P.ProductID
+
+
+SELECT SumaCantidad.Maximo, O.ShipCountry FROM Orders AS O
+INNER JOIN [Order Details] AS OD ON OD.OrderID = O.OrderID
+INNER JOIN Products AS P ON P.ProductID = OD.ProductID
+INNER JOIN (SELECT DISTINCT SUM(OD.Quantity) AS Maximo, P.ProductID FROM Orders AS O
+			INNER JOIN [Order Details] AS OD ON OD.OrderID = O.OrderID
+			INNER JOIN Products AS P ON P.ProductID = OD.ProductID
+			GROUP BY P.ProductID) AS SumaCantidad
+			ON SumaCantidad.ProductID = P.ProductID
+GROUP BY O.ShipCountry, SumaCantidad.Maximo
+order by o.ShipCountry, SumaCantidad.Maximo
 
 --11. Empleados (nombre y apellidos) que trabajan a las órdenes de Andrew Fuller.
 SELECT ESB.FirstName, ESB.LastName FROM Employees AS EJE

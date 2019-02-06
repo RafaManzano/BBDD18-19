@@ -11,9 +11,10 @@ WHERE A.state = 'CA'
 
 --2. Título y tipo de todos los libros en los que ninguno de los autores vive en California (CA).
 SELECT * FROM authors
+
 SELECT title_id, title, type FROM titles 
 EXCEPT 
-SELECT t.title_id, t.title, t.type FROM titles AS T 
+SELECT DISTINCT t.title_id, t.title, t.type FROM titles AS T 
 INNER JOIN titleauthor AS TA ON T.title_id = TA.title_id
 INNER JOIN authors AS A ON A.au_id = TA.au_id
 WHERE A.state = ('CA')
@@ -45,7 +46,7 @@ SELECT COUNT(E.emp_id) AS EmployeeSNumber, P.pub_id FROM publishers AS P
 INNER JOIN employee AS E ON E.pub_id = P.pub_id
 GROUP BY P.pub_id
 
---No se que significa
+--Dividir
 
 --7. Nombre, Apellidos y ciudad de todos los autores que han trabajado para la editorial 
 --"Binnet & Hardley” o "Five Lakes Publishing”
