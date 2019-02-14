@@ -1,4 +1,6 @@
-USE LeoMetroV2
+--USE LeoMetroV2
+USE LeoMetro
+
 SELECT * FROM LM_Estaciones
 SELECT * FROM LM_Lineas
 SELECT * FROM LM_Viajes
@@ -59,14 +61,19 @@ GROUP BY LMR.Tren
 SELECT * FROM LM_Pasajeros
 
 --Creo que no es corercto, de toda formas preguntar a Leo
---Se suma para saber lo que se gasta cada persona en el mes
-SELECT SUM(LMZP.Precio_Zona + LMV.Importe_Viaje) AS GastosMes, LMP.ID FROM LM_Estaciones AS LME
-INNER JOIN LM_Zona_Precios AS LMZP ON LMZP.Zona = LME.Zona_Estacion
-INNER JOIN LM_Viajes AS LMV ON LME.ID = LMV.IDEstacionEntrada OR LME.ID = LMV.IDEstacionSalida
-INNER JOIN LM_Tarjetas AS LMT ON LMV.IDTarjeta = LMT.ID
-INNER JOIN LM_Pasajeros AS LMP ON LMP.ID = LMT.IDPasajero
+SELECT SUM(LMV.Importe_Viaje) AS GastosMes, LMT.IDPasajero FROM LM_Viajes AS LMV 
+RIGHT JOIN LM_Tarjetas AS LMT ON LMV.IDTarjeta = LMT.ID
 WHERE MONTH(LMV.MomentoEntrada) = 2 AND MONTH(LMV.MomentoSalida) = 2 AND YEAR(LMV.MomentoEntrada) = 2017 AND YEAR(LMV.MomentoSalida) = 2017
-GROUP BY LMP.ID
+GROUP BY LMT.IDPasajero
 
+--Saber el precio por estacion
 SELECT LMZP.Precio_Zona, LME.ID FROM LM_Estaciones AS LME
 INNER JOIN LM_Zona_Precios AS LMZP ON LMZP.Zona = LME.Zona_Estacion
+
+--9. Calcula el tiempo medio diario que cada pasajero pasa en el sistema de metro y el número de veces que accede al mismo.
+SELECT AVG(TiempoPasajero.Horas) AS TiempoMedio, LMT.IDPasajero FROM LM_Tarjetas AS LMT 
+INNER JOIN (
+			SELECT SUM(DATEDIFF(HOUR, LMV.MomentoEntrada , LMV.MomentoSalida)) AS Horas, COUNT(LMV.ID) AS NumeroAccesos, LMT.IDPasajero  FROM LM_Viajes AS LMV
+			INNER JOIN LM_Tarjetas AS LMT ON LMT.ID = LMV.IDTarjeta
+			GROUP BY LMT.IDPasajero) AS TiempoPasajero ON TiempoPasajero.IDPasajero = LMT.IDPasajero
+GROUP BY LMT.IDPasajero
