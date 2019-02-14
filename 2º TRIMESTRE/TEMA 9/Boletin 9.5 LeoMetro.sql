@@ -1,5 +1,5 @@
---USE LeoMetroV2
-USE LeoMetro
+USE LeoMetroV2
+--USE LeoMetro
 
 SELECT * FROM LM_Estaciones
 SELECT * FROM LM_Lineas
@@ -71,9 +71,17 @@ SELECT LMZP.Precio_Zona, LME.ID FROM LM_Estaciones AS LME
 INNER JOIN LM_Zona_Precios AS LMZP ON LMZP.Zona = LME.Zona_Estacion
 
 --9. Calcula el tiempo medio diario que cada pasajero pasa en el sistema de metro y el número de veces que accede al mismo.
-SELECT AVG(TiempoPasajero.Horas) AS TiempoMedio, LMT.IDPasajero FROM LM_Tarjetas AS LMT 
+--Con esta consulta sabemos las horas en total de pasajeros en el sistema, Esta mal
+SELECT AVG(TiempoPasajero.Horas) AS TiempoMedio, LMT.IDPasajero, NumeroAccesos FROM LM_Tarjetas AS LMT 
 INNER JOIN (
 			SELECT SUM(DATEDIFF(HOUR, LMV.MomentoEntrada , LMV.MomentoSalida)) AS Horas, COUNT(LMV.ID) AS NumeroAccesos, LMT.IDPasajero  FROM LM_Viajes AS LMV
 			INNER JOIN LM_Tarjetas AS LMT ON LMT.ID = LMV.IDTarjeta
 			GROUP BY LMT.IDPasajero) AS TiempoPasajero ON TiempoPasajero.IDPasajero = LMT.IDPasajero
-GROUP BY LMT.IDPasajero
+GROUP BY LMT.IDPasajero,NumeroAccesos
+
+--Intento de tiempo diario. Esta es la solucion correcta
+SELECT DATEADD(MINUTE, AVG(TiempoPasajero.Minutos), CONVERT(TIME, '0:0')) AS TiempoMedio, TiempoPasajero.IDPasajero, SUM(TiempoPasajero.NumeroAccesos) AS NumeroAccesos FROM (
+			SELECT SUM(DATEDIFF(MINUTE, LMV.MomentoEntrada , LMV.MomentoSalida)) AS Minutos, COUNT(LMV.ID) AS NumeroAccesos, LMT.IDPasajero  FROM LM_Viajes AS LMV
+			INNER JOIN LM_Tarjetas AS LMT ON LMT.ID = LMV.IDTarjeta
+			GROUP BY LMT.IDPasajero, CAST(MomentoSalida AS TIME)) AS TiempoPasajero 
+GROUP BY TiempoPasajero.IDPasajero
