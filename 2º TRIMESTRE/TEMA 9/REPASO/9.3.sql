@@ -115,3 +115,19 @@ GO
 SELECT EFC.EmployeesNumber, E.pub_id FROM employee AS E
 RIGHT JOIN EmployeesForCategories AS EFC ON EFC.job_id = E.job_id
 GROUP BY EFC.EmployeesNumber, E.pub_id 
+
+--13. Autores que han escrito libros de dos o más tipos diferentes
+SELECT A.au_id, COUNT(T.type) AS Types FROM authors AS A
+INNER JOIN titleauthor AS TA ON A.au_id = TA.au_id
+INNER JOIN titles AS T ON TA.title_id = T.title_id
+GROUP BY A.au_id, T.type
+HAVING COUNT(T.type) > 1
+
+--14. Empleados que no trabajan actualmente en editoriales 
+--que han publicado libros cuya columna notes contenga la palabra "and”
+SELECT fname, lname FROM employee
+EXCEPT
+SELECT E.fname, E.lname FROM employee AS E
+INNER JOIN publishers AS P ON E.pub_id = P.pub_id
+INNER JOIN titles AS T ON P.pub_id = T.pub_id
+WHERE T.notes LIKE('%and%')

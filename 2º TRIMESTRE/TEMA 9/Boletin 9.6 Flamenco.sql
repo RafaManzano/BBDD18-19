@@ -1,4 +1,5 @@
 USE Flamenco
+
 SELECT * FROM F_Festivales_Cantaores
 SELECT * FROM F_Festivales
 SELECT * FROM F_Palos
@@ -17,12 +18,16 @@ VALUES ('TO', 'Tonas')
 
 BEGIN TRANSACTION
 INSERT F_Palos_Cantaor
-SELECT FPC.Cod_cantaor, 'TO' FROM F_Palos_Cantaor AS FPC
+SELECT DISTINCT FPC.Cod_cantaor, 'TO' FROM F_Palos_Cantaor AS FPC
 INNER JOIN F_Palos AS FP ON FPC.Cod_Palo = FP.Cod_Palo
 WHERE FP.Palo IN('Bamberas', 'Peteneras')
 --ROLLBACK
 --COMMIT
 
+SELECT * FROM F_Palos_Cantaor
+WHERE Cod_Palo = 'TO'
+/*
+No es lo que se pedia
 BEGIN TRANSACTION
 UPDATE F_Palos
 SET Palo = 'Tonas' 
@@ -32,7 +37,7 @@ INNER JOIN F_Palos AS FP ON FP.Cod_Palo = FPC.Cod_Palo
 WHERE Palo IN('Bamberas', 'Peteneras')
 --ROLLBACK
 --COMMIT
-
+*/
 --3. Número de cantaores mayores de 30 años que han actuado cada año en cada peña. Se
 --contará la edad que tenían en el año de la actuación.
 --Creo que no es correcto, porque he agrupado por demasiadas cosas
