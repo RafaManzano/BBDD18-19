@@ -237,3 +237,12 @@ GROUP BY E.EmployeeID
 GO
 
 --Vendedores que ganan en los 3 años (dos anteriores).
+GO
+CREATE FUNCTION CifraVentasAnno (@anno int) 
+RETURNS TABLE AS RETURN
+(SELECT DA.Dolares ,YEAR(O.OrderDate) AS Anno FROM DolaresVendedores AS DA
+ INNER JOIN Orders AS O ON DA.EmployeeID = O.EmployeeID
+ WHERE O.OrderDate = @anno)
+GO
+
+--No es correcto y el planteamiento no es correcto tampoco
