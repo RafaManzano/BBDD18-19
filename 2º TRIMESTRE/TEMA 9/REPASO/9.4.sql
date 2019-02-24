@@ -99,15 +99,7 @@ INNER JOIN BI_Clientes AS BIC ON BIM.CodigoPropietario = BIC.Codigo
 GROUP BY BIC.Nombre
 
 --10. Número de visitas a las que ha acudido cada mascota, fecha de su primera y de su última visita
---
-GO
-CREATE VIEW VisitasFecha AS
-SELECT COUNT(*) AS NumeroVisitas, Mascota FROM BI_Visitas
-GROUP BY Mascota
-GO
+SELECT Fecha, Mascota FROM BI_Visitas
+GROUP BY Mascota, Fecha
 
-
-
-SELECT DISTINCT SUM(NumeroVisitas) , VF.Mascota, BIV.Fecha FROM BI_Visitas AS BIV
-INNER JOIN VisitasFecha AS VF ON BIV.Mascota = VF.Mascota
-GROUP BY VF.Mascota, BIV.Fecha
+SELECT *

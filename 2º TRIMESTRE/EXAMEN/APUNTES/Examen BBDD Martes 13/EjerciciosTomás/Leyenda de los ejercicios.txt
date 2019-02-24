@@ -1,0 +1,2 @@
+SuperVentas ---> Boletín 9.2 / Ejercicio 10
+Para ver la diferencia entre EXCEPT y LEFT JOIN ---> Boletín 9.3 / Ejercicios 2 y 3

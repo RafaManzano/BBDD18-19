@@ -1,0 +1,75 @@
+--Función para saber cuántas veces se ha cantado una canción en un festival. Se le pasa el nombre de la canción
+--y el ID del festival
+GO
+CREATE FUNCTION VecesCancion(@NombreCancion VARCHAR(120),@NombreFestival VARCHAR(55))
+RETURNS INT
+	BEGIN
+		DECLARE @Veces INT
+		SELECT @Veces=COUNT(T.ID)
+		FROM LFFestivales AS F
+		INNER JOIN LFEdiciones AS E ON F.ID=E.IDFestival
+		INNER JOIN LFTemasBandasEdiciones AS TBE ON TBE.IDFestival=E.IDFestival AND TBE.Ordinal=E.Ordinal
+		INNER JOIN LFTemas AS T ON TBE.IDTema=T.ID
+		WHERE F.Denominacion=@NombreFestival AND T.Titulo=@NombreCancion
+		RETURN @Veces
+	END
+
+GO
+	SELECT dbo.VecesCancion('CANSIÓN INSTRUMENTÁ DEL HOMBRE QUE TENÍA EL RECO DEL MUNDO DE LLEVARSE MÁS TIEMPO HABLANDO SIN PARÁ','Dreambeach')
+
+-- Función que devuelve el tema más cantado
+GO
+CREATE FUNCTION TemaMasPopular()
+RETURNS VARCHAR(120)
+	BEGIN
+		DECLARE @TemaPopular VARCHAR(120)
+		/*DECLARE @Veces INT
+		SELECT @TemaPopular=T.Titulo, @Veces=COUNT(T.ID)
+		FROM LFFestivales AS F
+		INNER JOIN LFEdiciones AS E ON F.ID=E.IDFestival
+		INNER JOIN LFTemasBandasEdiciones AS TBE ON TBE.IDFestival=E.IDFestival AND TBE.Ordinal=E.Ordinal
+		INNER JOIN LFTemas AS T ON TBE.IDTema=T.ID
+		--ORDER BY @Veces
+		WHERE @Veces=2
+		GROUP BY T.Titulo
+		--HAVING @Veces=MAX(@Veces)
+		RETURN 	@TemaPopular*/
+		SELECT @TemaPopular=T.Titulo
+		FROM LFTemas AS T
+		--INNER JOIN LFTemasBandasEdiciones AS TBE ON T.ID=TBE.IDTema
+		INNER JOIN(
+			SELECT TOP 1 T.Titulo,COUNT(T.ID) AS Veces
+			FROM LFTemas AS T
+			INNER JOIN LFTemasBandasEdiciones AS TBE ON T.ID=TBE.IDTema
+			GROUP BY T.Titulo
+			ORDER BY COUNT(T.ID) DESC
+		) AS VecesPorTema ON VecesPorTema.Titulo=T.Titulo
+		GROUP BY T.Titulo
+		RETURN @TemaPopular
+	END
+GO
+SELECT dbo.TemaMasPopular()
+
+/*Necesitamos disolver una banda que pasamos por parámetros (el nombre de la banda). Por lo tanto,
+tendremos que eliminar la relación  de los músicos con esa banda*/
+GO
+CREATE PROCEDURE DisolverBanda
+	@NombreBanda VARCHAR(50)
+	--@IDBanda INT
+AS
+	BEGIN
+		BEGIN TRANSACTION
+			DELETE LFMusicosBandas
+			--INNER JOIN LFBandas AS B ON B.
+			WHERE /*IDBanda=@IDBanda*/ IDBanda=(SELECT ID FROM LFBandas WHERE NombreBanda=@NombreBanda)
+
+			UPDATE LFBandas
+			SET FechaDisolucion = CAST(CURRENT_TIMESTAMP AS DATE)
+			WHERE /*ID=@IDBanda*/NombreBanda=@NombreBanda
+		COMMIT
+	END
+GO
+BEGIN TRANSACTION
+EXECUTE DisolverBanda /*3*/ 'Camela'
+SELECT * FROM LFMusicosBandas
+ROLLBACK

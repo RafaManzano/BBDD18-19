@@ -1,0 +1,45 @@
+/*use master
+go
+drop database ColombianSystem
+*/
+
+/*
+CREATE DATABASE ColombianSystem
+go
+USE ColombianSystem
+*/
+
+CREATE TABLE CS_CLIENTES(
+	RIF_Cliente smallint NOT NULL 
+	,Nombre nVarchar NOT NULL
+	,Direccion nVarchar NOT NULL
+	,Telefono smallint NOT NULL
+	,Ciudad nVarchar NOT NULL
+	,CONSTRAINT PK_CLIENTES PRIMARY KEY (RIF_Cliente)
+)
+
+CREATE TABLE CS_PRODUCTOS(
+	Codigo smallint NOT NULL
+	,Descripcion nVarchar NOT NULL
+	,Categoria nVarchar NOT NULL
+	,Valor_Unit TinyInt NOT NULL
+	,CONSTRAINT PK_PRODUCTOS PRIMARY KEY (Codigo)
+)
+
+CREATE TABLE CS_FACTURAS(
+	NumFactura smallint NOT NULL
+	,Fecha smalldatetime NOT NULL
+	,RIF_Cliente smallint NOT NULL UNIQUE
+	,CONSTRAINT PK_FACTURAS PRIMARY KEY (NumFactura)
+	,CONSTRAINT FK_CLIENTES FOREIGN KEY (RIF_Cliente) REFERENCES CS_CLIENTES(RIF_Cliente) ON UPDATE CASCADE
+)
+
+CREATE TABLE CS_FACTURA_PRODUCTO(
+	Num_Factura smallint NOT NULL
+	,Codigo SmallInt NOT NULL
+	,Cantidad TinyInt NOT NULL
+	,CONSTRAINT PK_FACTURA_PRODUCTO PRIMARY KEY (Num_Factura, Codigo)
+	,CONSTRAINT FK_FACTURAS FOREIGN KEY (Num_Factura) REFERENCES CS_FACTURAS (NumFactura) ON UPDATE CASCADE
+	,CONSTRAINT FK_PRODUCTOS FOREIGN KEY (Codigo)REFERENCES CS_PRODUCTOS (Codigo) ON UPDATE CASCADE
+)
+
