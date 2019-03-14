@@ -1,4 +1,4 @@
-USE ParlamentoPrev
+USE Parlamento
 SELECT * FROM Diputadas
 SELECT * FROM Partidos
 SELECT * FROM PartidosGrupos
