@@ -190,10 +190,29 @@ VALUES ('Mecca Cola', 1, 1, '6 x 75 cl', 7.35, 14, 0, 0, 0)
 --COMMIT
 
 --8. Todos los que han comprado "Outback Lager" han comprado cinco años después la misma cantidad de Mecca Cola al mismo vendedor
-/*
-INSERT INTO Orders (CustomerID, EmployeeID)
+--Creo que por un lado tengo que poner order para realizarlo y despues unirlos con order details
+--No se como unirlos
+SELECT * FROM Orders
+BEGIN TRANSACTION 
+INSERT INTO Orders(CustomerID, EmployeeID, OrderDate, RequiredDate, ShippedDate, ShipVia, Freight, ShipName, ShipAddress, ShipCity, ShipRegion, ShipPostalCode, ShipCountry)
+SELECT O.CustomerID, O.EmployeeID, DATEADD(YEAR,5,O.OrderDate), DATEADD(YEAR,5,O.RequiredDate), DATEADD(YEAR,5,O.ShippedDate), O.ShipVia, O.Freight, O.ShipName, O.ShipAddress, O.ShipCity, O.ShipRegion, O.ShipPostalCode, O.ShipCountry  FROM Orders AS O
+INNER JOIN [Order Details] AS OD ON O.OrderID = OD.OrderID
+INNER JOIN Products AS P ON OD.ProductID = P.ProductID
+WHERE P.ProductName  = 'Outback Lager'
+--ROLLBACK
+--COMMIT
+
+BEGIN TRANSACTION
+INSERT INTO Products()
 SELECT * FROM Orders AS O
 INNER JOIN [Order Details] AS OD ON O.OrderID = OD.OrderID
 INNER JOIN Products AS P ON OD.ProductID = P.ProductID
 WHERE P.ProductName  = 'Outback Lager'
-*/
+
+--9. El pasado 20 de enero, Margaret Peacock consiguió vender una caja de Nesquick Power Max a todos los clientes 
+--que le habían comprado algo anteriormente. Los datos de envío (dirección, transportista, etc) son los mismos 
+--de alguna de sus ventas anteriores a ese cliente).
+--Me pasa igual que el anterior, creo que tengo que crear antes las ventas(orders) antes de hacer las ventas con detalle (OrderDetails)
+SELECT * FROM Orders AS O
+INNER JOIN Employees AS E ON O.EmployeeID = E.EmployeeID
+WHERE E.FirstName = 'Margaret' AND E.LastName = 'Peacock'
