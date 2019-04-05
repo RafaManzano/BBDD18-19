@@ -6,21 +6,24 @@ SELECT * FROM titles
 --Si TipoActualiza contiene una "D" hay que eliminar la fila cuyo código (title_id) se incluye.
 --Si TipoActualiza es "U" hay que actualizar la fila identificada por title_id con las columnas que no sean Null. 
 --Las que sean Null se dejan igual.
+
 BEGIN TRANSACTION
-SELECT * FROM ActualizaTitles
+--SELECT * FROM ActualizaTitles
+--Se declara un numero para el contador cogiendo el numero de NumActualiza
 DECLARE @Numero INT 
 SET @Numero = (SELECT TOP 1 NumActualiza FROM ActualizaTitles)
 BEGIN TRANSACTION
 SELECT @Numero = MIN(NumActualiza) FROM ActualizaTitles 
 WHILE @Numero IS NOT NULL
 BEGIN
-
 --SELECT * FROM titles AS T
 --INNER JOIN ActualizaTitles AS ATI ON T.title_id = ATI.title_id
 
+--Hay que mirar con un select de que el TipoActualiza es el indicado
 IF 'U' = (SELECT TipoActualiza FROM ActualizaTitles WHERE NumActualiza = @Numero)
 	BEGIN 
 		UPDATE titles 
+		--La funcion isnull te dice que si no es nulo coja la primera parte (,) y si lo es la segunda
 		SET title_id = ISNULL(ATI.title_id, T.title_id)
 		, title = ISNULL(ATI.title, T.title)
 		, type = ISNULL(ATI.type, T.type)
@@ -31,21 +34,24 @@ IF 'U' = (SELECT TipoActualiza FROM ActualizaTitles WHERE NumActualiza = @Numero
 		, ytd_sales = ISNULL(ATI.ytd_sales, T.ytd_sales)
 		, notes = ISNULL(ATI.notes, T.notes)
 		, pubdate = ISNULL(ATI.pubdate, T.pubdate)
-		--WHERE SI LOS ATRIBUTOS SON NULL SE QUEDAN IGUAL SI NO SE CAMBIA
 		FROM titles AS T
-		INNER JOIN ActualizaTitles AS ATI ON T.title_id = ATI.title_id 
+		INNER JOIN ActualizaTitles AS ATI ON T.title_id = ATI.title_id
+		--Lo mas importante es el where
 		WHERE ATI.NumActualiza = @Numero
 	END
+	--Hay que mirar con un select de que el TipoActualiza es el indicado
 	ELSE IF 'I' = (SELECT TipoActualiza FROM ActualizaTitles WHERE NumActualiza = @Numero)
 		 BEGIN
 			INSERT INTO titles(title_id, title, [type], pub_id, price, advance, royalty, ytd_sales, notes, pubdate)
 			SELECT title_id, title, [type], pub_id, price, advance, royalty, ytd_sales, notes, pubdate FROM ActualizaTitles
+			--Lo mas importante es el where
 			WHERE NumActualiza = @Numero
 		 END
 
 		 ELSE
 			BEGIN
 				DELETE FROM titles
+				--Lo mas importante es el where
 				WHERE title_id = (SELECT title_id FROM ActualizaTitles WHERE NumActualiza = @Numero)
 			END
 			
