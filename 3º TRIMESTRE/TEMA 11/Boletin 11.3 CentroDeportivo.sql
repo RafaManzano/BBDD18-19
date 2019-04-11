@@ -51,6 +51,7 @@ SELECT @IDUsuario
 --devuelva en otro parámetro de salida el número de horas que esa instalación ha estado alquilada entre esas dos fechas, 
 --ambas incluidas. Si se omite la segunda fecha, se tomará la actual con GETDATE().
 --Devuelve con return códigos de error si el código de la instalación es erróneo  o si la fecha de inicio es posterior a la de fin.
+--Hay una clausula tiempo que te dice cuanto tiempo se ha llevado alquilado la pista
 SELECT * FROM Reservas
 GO
 CREATE PROCEDURE NumeroHorasInstalacion
@@ -69,14 +70,14 @@ CREATE PROCEDURE NumeroHorasInstalacion
 			 END
 			 ELSE IF @FechaFinal = NULL
 					BEGIN
-						SELECT @Horas = DATEADD(HH, @FechaInicial, GETDATE()) FROM Reservas
-						WHERE @FechaInicial < GETDATE()
+						SELECT @Horas = DATEDIFF(HH, @FechaInicial, GETDATE()) FROM Reservas
+						WHERE @FechaInicial < GETDATE() AND @CodigoInstalacion = Cod_Instalacion
 						RETURN @Horas
 					END
 						ELSE IF @FechaFinal <> NULL
 						BEGIN
-							SELECT @Horas = DATEADD(HH, @FechaInicial, @FechaFinal) FROM Reservas
-							WHERE @FechaInicial < @FechaFinal
+							SELECT @Horas = DATEDIFF(HH, @FechaInicial, @FechaFinal) FROM Reservas
+							WHERE @FechaInicial < @FechaFinal AND @CodigoInstalacion = Cod_Instalacion
 							RETURN @Horas
 						END
 	END
