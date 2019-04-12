@@ -131,3 +131,76 @@ EXECUTE ClienteInsatisfecho 27, @Fecha
 --COMMIT
 
 SELECT * FROM LM_Viajes
+
+--4. La empresa de Metro realiza una campaña de promoción para pasajeros fieles.
+--Crea un procedimiento almacenado que recargue saldo a los pasajeros que cumplan determinados requisitos. 
+--Se recargarán N1 euros a los pasajeros que hayan consumido más de 30 euros en el mes anterior (considerar mes completo, 
+--del día 1 al fin) y N2 euros a los que hayan utilizado más de 10 veces alguna estación de las zonas 3 o 4. 
+--Los valores de N1 y N2 se pasarán como parámetros. Si se omiten, se tomará el valor 5.
+--Ambos premios son excluyentes. Si algún pasajero cumple ambas condiciones se le aplicará la que suponga mayor 
+--bonificación de las dos.
+GO
+CREATE PROCEDURE PasajerosFieles 
+	@N1 SMALLMONEY,
+	@N2 SMALLMONEY AS
+
+	SELECT SUM(Importe_Viaje) AS Total, IDTarjeta FROM LM_Viajes
+	WHERE MONTH(MomentoEntrada) = MONTH(MomentoSalida)
+	GROUP BY IDTarjeta
+	HAVING SUM(Importe_Viaje) > 30
+
+	SELECT COUNT(LMV.ID) AS Veces, IDTarjeta FROM LM_Viajes AS LMV 
+	INNER JOIN LM_Estaciones AS LME ON LMV.IDEstacionEntrada = LME.ID OR LMV.IDEstacionSalida = LME.ID
+	WHERE LME.Zona_Estacion = 3 OR LME.Zona_Estacion = 4
+	GROUP BY IDTarjeta
+	HAVING COUNT(LMV.ID) > 10
+GO
+
+--5. Crea una función que nos devuelva verdadero si es posible que un pasajero haya subido a un tren en un 
+--determinado viaje. Se pasará como parámetro el código del viaje y la matrícula del tren.
+CREATE FUNCTION PasajeroSubidoTren (@CodigoViaje INT, @Matricula INT)
+RETURNS BIT AS 
+BEGIN
+DECLARE @Subida BIT
+	IF (SELECT * FROM LM_Trenes AS LMT
+	   INNER JOIN LM_Recorridos AS LMR ON LMT.ID = LMR.Tren
+	   INNER JOIN LM_Estaciones AS LME ON LMR.estacion = LME.ID
+	   INNER JOIN LM_Viajes AS LMV ON LME.ID = LMV.IDEstacionEntrada
+	   WHERE LMV.ID = @CodigoViaje AND LMT.Matricula = @Matricula) IS NOT NULL
+	   BEGIN
+		  SET @Subida = 1
+	   END
+	ELSE
+		BEGIN
+		SET @Subida = 0
+		END
+RETURN @Subida	  
+END
+
+--6. Crea un procedimiento SustituirTarjeta que Cree una nueva tarjeta y la asigne al mismo usuario y 
+--con el mismo saldo que otra tarjeta existente. El código de la tarjeta a sustituir se pasará como parámetro.
+SELECT * FROM LM_Tarjetas
+GO
+CREATE PROCEDURE SustituirTarjeta
+	@IDTarjeta INT AS
+BEGIN
+	INSERT INTO LM_Tarjetas (Saldo, IDPasajero)
+	SELECT Saldo, IDPasajero FROM LM_Tarjetas
+	WHERE ID = @IDTarjeta
+END
+GO
+
+BEGIN TRANSACTION
+EXECUTE SustituirTarjeta 44
+--ROLLBACK
+--COMMIT
+
+--7. Las estaciones de la zona 3 tienen ciertas deficiencias, lo que nos ha obligado a introducir una serie de 
+--modificaciones en los trenes  para cumplir las medidas de seguridad.
+--A consecuencia de estas modificaciones, la capacidad de los trenes se ha visto reducida en 6 plazas 
+--para los trenes de tipo 1 y 4 plazas para los trenes de tipo 2.
+--Realiza un procedimiento al que se pase un intervalo de tiempo y modifique la capacidad de todos los 
+--trenes que hayan circulado más de una vez por alguna estación de la zona 3 en ese intervalo.
+
+
+
