@@ -1,5 +1,13 @@
 USE LeoMetroV2
 SET DATEFORMAT YMD
+/*
+Interfaz
+Nombre: RecargarTarjetas
+Comentario: Es el enunciado
+Cabecera: CREATE PROCEDURE RecargarTarjetas
+Entrada: No hay
+Salida: No hay
+*/
 
 --0. La dimisión de Esperanza Aguirre ha causado tal conmoción entre los directivos de LeoMetro que han decidido conceder 
 --una amnistía a todos los pasajeros que tengan un saldo negativo en sus tarjetas.
@@ -23,7 +31,15 @@ BEGIN TRANSACTION
 EXECUTE RecargarTarjetas
 --ROLLBACK
 --COMMIT 
-
+/*
+Interfaz
+Nombre: RecargarTarjeta
+Comentario: El enunciado
+Cabecera: CREATE PROCEDURE RecargarTarjeta (@IDTarjeta INT,	@Importe SMALLMONEY)
+Entrada: - IDTarjeta INT //Es la tarjeta que se desea aumentar el saldo
+		 - Importe SMALLMONEY //Es el dinero que se desea sumar a la tarjeta
+Salida: No hay
+*/
 --1. Crea un procedimiento RecargarTarjeta que reciba como parámetros el ID de una tarjeta y un importe y actualice el 
 --saldo de la tarjeta sumándole dicho importe, además de grabar la correspondiente recarga
 SELECT * FROM LM_Tarjetas
@@ -55,6 +71,13 @@ EXECUTE RecargarTarjeta @IDTarjeta, @Importe
 --ROLLBACK
 --COMMIT
 
+/*
+INTERFAZ
+Nombre: PasajeroSale
+Cabecera: CREATE PROCEDURE PasajeroSale @IDTarjeta INT, @IDEstacion INT AS
+Entrada: @IDTarjeta INT, @IDEstacion INT
+Salida: No hay
+*/
 --2. Crea un procedimiento almacenado llamado PasajeroSale que reciba como parámetros el ID de una tarjeta, el ID de una estación 
 --y una fecha/hora (opcional). El procedimiento se llamará cuando un pasajero pasa su tarjeta por uno de los tornos de salida del metro. 
 --Su misión es grabar la salida en la tabla LM_Viajes. Para ello deberá localizar la entrada que corresponda, que será la 
@@ -99,6 +122,13 @@ SELECT * FROM LM_Viajes
 SELECT DISTINCT IDTarjeta FROM LM_Viajes
 ORDER BY IDTarjeta
 
+/*
+INTERFAZ
+Nombre: ClienteInsatisfecho
+Cabecera: CREATE PROCEDURE ClienteInsatisfecho @IDPasajero INT, @FechaEntrada SMALLDATETIME AS
+Entrada: @IDPasajero INT, @FechaEntrada SMALLDATETIME
+Salida: No hay
+*/
 --3. A veces, un pasajero reclama que le hemos cobrado un viaje de forma indebida. Escribe un procedimiento que reciba como 
 --parámetro el ID de un pasajero y la fecha y hora de la entrada en el metro y anule ese viaje, actualizando además el 
 --saldo de la tarjeta que utilizó.
@@ -132,6 +162,12 @@ EXECUTE ClienteInsatisfecho 27, @Fecha
 
 SELECT * FROM LM_Viajes
 
+/*
+Nombre: PasajerosFieles
+Cabecera: CREATE PROCEDURE PasajerosFieles 	@N1 SMALLMONEY,	@N2 SMALLMONEY
+Entrada: @N1 SMALLMONEY, @N2 SMALLMONEY
+Salida: No hay
+*/
 --4. La empresa de Metro realiza una campaña de promoción para pasajeros fieles.
 --Crea un procedimiento almacenado que recargue saldo a los pasajeros que cumplan determinados requisitos. 
 --Se recargarán N1 euros a los pasajeros que hayan consumido más de 30 euros en el mes anterior (considerar mes completo, 
@@ -156,8 +192,16 @@ CREATE PROCEDURE PasajerosFieles
 	HAVING COUNT(LMV.ID) > 10
 GO
 
+/*
+INTERFAZ
+Nombre: PasajeroSubidoTren
+Cabecera: CREATE FUNCTION PasajeroSubidoTren (@CodigoViaje INT, @Matricula INT)
+Entrada: @CodigoViaje INT, @Matricula INT
+Salida: @Subida BIT
+*/
 --5. Crea una función que nos devuelva verdadero si es posible que un pasajero haya subido a un tren en un 
 --determinado viaje. Se pasará como parámetro el código del viaje y la matrícula del tren.
+GO
 CREATE FUNCTION PasajeroSubidoTren (@CodigoViaje INT, @Matricula INT)
 RETURNS BIT AS 
 BEGIN
@@ -176,7 +220,15 @@ DECLARE @Subida BIT
 		END
 RETURN @Subida	  
 END
+GO
 
+/*
+INTERFAZ
+Nombre: SustituirTarjeta
+Cabecera:CREATE PROCEDURE SustituirTarjeta @IDTarjeta INT AS
+Entrada: @IDTarjeta INT
+Salida: No hay
+*/
 --6. Crea un procedimiento SustituirTarjeta que Cree una nueva tarjeta y la asigne al mismo usuario y 
 --con el mismo saldo que otra tarjeta existente. El código de la tarjeta a sustituir se pasará como parámetro.
 SELECT * FROM LM_Tarjetas
@@ -195,12 +247,41 @@ EXECUTE SustituirTarjeta 44
 --ROLLBACK
 --COMMIT
 
+/*
+
+*/
 --7. Las estaciones de la zona 3 tienen ciertas deficiencias, lo que nos ha obligado a introducir una serie de 
 --modificaciones en los trenes  para cumplir las medidas de seguridad.
 --A consecuencia de estas modificaciones, la capacidad de los trenes se ha visto reducida en 6 plazas 
 --para los trenes de tipo 1 y 4 plazas para los trenes de tipo 2.
 --Realiza un procedimiento al que se pase un intervalo de tiempo y modifique la capacidad de todos los 
 --trenes que hayan circulado más de una vez por alguna estación de la zona 3 en ese intervalo.
-
+GO
+CREATE PROCEDURE DeficienciaTrenes
+	@Tiempo SMALLDATETIME AS
+BEGIN
+DECLARE @Rebaja INT 
+	UPDATE LM_Trenes
+	SET Capacidad = Capacidad - @Rebaja
+	IF (SELECT * FROM LM_Trenes AS LMT
+		INNER JOIN LM_Recorridos AS LMR ON LMT.ID = LMR.Tren
+		INNER JOIN LM_Estaciones AS LME ON LMR.estacion = LME.ID
+		INNER JOIN LM_Viajes AS LMV ON LME.ID = LMV.IDEstacionEntrada OR LME.ID = LMV.IDEstacionSalida 
+		WHERE Tipo = 1 AND @Tiempo BETWEEN LMV.MomentoEntrada AND LMV.MomentoSalida AND LME.Zona_Estacion = 3
+		) IS NOT NULL
+	BEGIN 
+		SET @Rebaja = 6
+	END 
+	ELSE IF (SELECT * FROM LM_Trenes AS LMT
+			INNER JOIN LM_Recorridos AS LMR ON LMT.ID = LMR.Tren
+			INNER JOIN LM_Estaciones AS LME ON LMR.estacion = LME.ID
+			INNER JOIN LM_Viajes AS LMV ON LME.ID = LMV.IDEstacionEntrada OR LME.ID = LMV.IDEstacionSalida 
+			WHERE Tipo = 2 AND @Tiempo BETWEEN LMV.MomentoEntrada AND LMV.MomentoSalida AND LME.Zona_Estacion = 3
+			) IS NOT NULL
+	BEGIN
+		SET @Rebaja = 4
+	END
+END
+GO
 
 

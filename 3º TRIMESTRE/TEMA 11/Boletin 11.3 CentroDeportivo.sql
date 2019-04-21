@@ -1,6 +1,11 @@
 USE CentroDeportivo
---Hacer las interfaces de las funciones, POR DIOS
-
+/*
+INTERFAZ
+Nombre: EliminarUsuario
+Cabecera: CREATE PROCEDURE EliminarUsuario @DNI CHAR(9)
+Entrada: DNI CHAR
+Salida: No hay
+*/
 --1. Escribe un procedimiento EliminarUsuario que reciba como parámetro el DNI de un usuario, 
 --le coloque un NULL en la columna Sex y borre todas las reservas futuras de ese usuario. 
 --Ten en cuenta que si alguna de esas reservas tiene asociado un alquiler de material habrá que borrarlo también.
@@ -30,6 +35,13 @@ GO
 
 EXECUTE EliminarUsuario '59544420G'
 
+/*
+INTERFAZ
+Nombre: EstaAlquilado
+Cabecera: CREATE PROCEDURE EstaAlquilado @CodigoInstalacion INT, @Fecha SMALLDATETIME, @IDUsuario CHAR(12) OUTPUT AS
+Entrada: @CodigoInstalacion INT, @Fecha SMALLDATETIME
+Salida: @IDUsuario CHAR(12)
+*/
 --2. Escribe un procedimiento que reciba como parámetros el código de una instalación y una fecha/hora (SmallDateTime) y 
 --devuelva en otro parámetro de salida el ID del usuario que la tenía alquilada si en ese 
 --momento la instalación estaba ocupada. Si estaba libre, devolverá un NULL.
@@ -47,6 +59,13 @@ DECLARE @IDUsuario CHAR(12)
 EXECUTE EstaAlquilado 1, '2020-12-12 15:00:00', @IDUsuario OUTPUT
 SELECT @IDUsuario
 
+/*
+INTERFAZ
+Nombre: EstaAlquilado
+Cabecera: CREATE PROCEDURE NumeroHorasInstalacion @CodigoInstalacion INT, @FechaInicial DATE, @FechaFinal DATE,	@Horas INT OUTPUT AS 
+Entrada: @CodigoInstalacion INT, @FechaInicial DATE, @FechaFinal DATE,
+Salida: @Horas INT
+*/
 --3. Escribe un procedimiento que reciba como parámetros el código de una instalación y dos fechas (DATE) y 
 --devuelva en otro parámetro de salida el número de horas que esa instalación ha estado alquilada entre esas dos fechas, 
 --ambas incluidas. Si se omite la segunda fecha, se tomará la actual con GETDATE().
@@ -82,7 +101,13 @@ CREATE PROCEDURE NumeroHorasInstalacion
 						END
 	END
 GO
-
+/*
+INTERFAZ
+Nombre: EfectuarReserva
+Cabecera: CREATE PROCEDURE EfectuarReserva @DNI CHAR(9), @CodigoInstalacion INT, @FechaInicial SMALLDATETIME, @FechaFinal SMALLDATETIME, @CodigoReserva INT OUTPUT AS 
+Entrada: @DNI CHAR(9), @CodigoInstalacion INT, @FechaInicial SMALLDATETIME, @FechaFinal SMALLDATETIME
+Salida: @CodigoReserva INT
+*/
 --4. Escribe un procedimiento EfectuarReserva que reciba como parámetro el DNI de un usuario, el código de la instalación, 
 --la fecha/hora de inicio de la reserva y la fecha/hora final.
 --El procedimiento comprobará que los datos de entradas son correctos y grabará la correspondiente reserva. 
@@ -97,6 +122,7 @@ GO
 SELECT * FROM Reservas
 SELECT * FROM Instalaciones
 GO
+--Este no esta correcto faltan cosas
 CREATE PROCEDURE EfectuarReserva
 	@DNI CHAR(9),
 	@CodigoInstalacion INT,
