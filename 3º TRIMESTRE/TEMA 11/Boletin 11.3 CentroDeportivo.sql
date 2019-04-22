@@ -1,4 +1,5 @@
 USE CentroDeportivo
+SET DATEFORMAT YMD
 /*
 INTERFAZ
 Nombre: EliminarUsuario
@@ -71,6 +72,8 @@ Salida: @Horas INT
 --ambas incluidas. Si se omite la segunda fecha, se tomará la actual con GETDATE().
 --Devuelve con return códigos de error si el código de la instalación es erróneo  o si la fecha de inicio es posterior a la de fin.
 --Hay una clausula tiempo que te dice cuanto tiempo se ha llevado alquilado la pista
+
+--Modificar los varios returns
 SELECT * FROM Reservas
 GO
 CREATE PROCEDURE NumeroHorasInstalacion
@@ -122,31 +125,58 @@ Salida: @CodigoReserva INT
 SELECT * FROM Reservas
 SELECT * FROM Instalaciones
 GO
---Este no esta correcto faltan cosas
-CREATE PROCEDURE EfectuarReserva
+
+ALTER PROCEDURE EfectuarReserva
 	@DNI CHAR(9),
 	@CodigoInstalacion INT,
 	@FechaInicial SMALLDATETIME,
 	@FechaFinal SMALLDATETIME,
 	@CodigoReserva INT OUTPUT AS 
-	BEGIN 
-		IF @CodigoInstalacion <> (SELECT Cod_Instalacion FROM Reservas)
+	BEGIN
+	DECLARE @CodigoError INT 
+		IF NOT EXISTS (SELECT Codigo FROM Instalaciones WHERE @CodigoInstalacion = Codigo) 
 		BEGIN
-			SET @CodigoReserva = 4
+			SET @CodigoError = 4
 		END
-		ELSE IF @DNI <> (SELECT DNI FROM Usuarios)
+		ELSE IF NOT EXISTS (SELECT DNI FROM Usuarios WHERE @DNI = DNI)
 			 BEGIN
-				SET @CodigoReserva = 5
+				SET @CodigoError = 5
 			 END
 			 ELSE IF @FechaInicial > @FechaFinal
 				  BEGIN
-					 SET @CodigoReserva = 8
+					 SET @CodigoError = 8
 				  END
 				  ELSE IF DAY(@FechaInicial) <> DAY(@FechaFinal)
 					   BEGIN
-						  SET @CodigoReserva = 11
+						  SET @CodigoError = 11
 					   END
-					   ELSE IF --SELECT * FROM Reservas
-					           --WHERE @FechaInicial
+					   ELSE IF EXISTS (SELECT * FROM Reservas WHERE Fecha_Hora < @FechaInicial AND DATEADD(HH,Fecha_Hora,Tiempo) > @FechaFinal AND Fecha_Hora NOT BETWEEN @FechaInicial AND @FechaFinal AND DATEADD(HH,Fecha_Hora,Tiempo) NOT BETWEEN @FechaInicial AND @FechaFinal AND @CodigoInstalacion = Cod_Instalacion)
+					   BEGIN
+						  SET @CodigoError = 3
+					   END
+						   ELSE
+						   BEGIN
+								INSERT Reservas (Tiempo, Fecha_Hora, ID_Usuario, Cod_Instalacion)
+								VALUES (DATEDIFF(HH, @FechaInicial,@FechaFinal), @FechaInicial, (SELECT ID FROM Usuarios AS U WHERE U.ID = @DNI), @CodigoInstalacion)
+								SET @CodigoError = 0
+								SET @CodigoReserva = @@IDENTITY
+						   END
+	RETURN @CodigoError
 	END
 GO
+
+BEGIN TRANSACTION
+DECLARE @Error INT
+DECLARE @CodigoReserva INT
+EXECUTE @Error =  EfectuarReserva '59544420G', 1, '2019-04-22 10:44', '2019-04-22 12:44', @CodigoReserva OUTPUT
+
+SELECT @Error, @CodigoReserva
+SELECT * FROM Reservas
+--ROLLBACK
+--COMMIT
+
+--SELECT * FROM Instalaciones
+--SELECT * FROM Materiales
+--SELECT * FROM Reservas
+--SELECT * FROM Usuarios
+--SELECT * FROM ReservasMateriales
