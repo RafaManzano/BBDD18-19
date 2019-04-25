@@ -179,18 +179,66 @@ GO
 CREATE PROCEDURE PasajerosFieles 
 	@N1 SMALLMONEY,
 	@N2 SMALLMONEY AS
+	IF(@N1 = NULL)
+	BEGIN
+		SET @N1 = 5
+	END
 
-	SELECT SUM(Importe_Viaje) AS Total, IDTarjeta FROM LM_Viajes
-	WHERE MONTH(MomentoEntrada) = MONTH(MomentoSalida)
-	GROUP BY IDTarjeta
-	HAVING SUM(Importe_Viaje) > 30
+	IF(@N2 = NULL)
+	BEGIN
+		SET @N2 = 5
+	END
+	/*
+	IF EXISTS (SELECT IDTarjeta FROM LM_Viajes
+			   WHERE MONTH(MomentoEntrada) = MONTH(MomentoSalida) AND ID = (SELECT IDTarjeta FROM LM_Viajes AS LMV 
+																			INNER JOIN LM_Estaciones AS LME ON LMV.IDEstacionEntrada = LME.ID OR LMV.IDEstacionSalida = LME.ID
+																			WHERE LME.Zona_Estacion = 3 OR LME.Zona_Estacion = 4
+																			GROUP BY IDTarjeta
+																			HAVING COUNT(LMV.ID) > 10)
+			   GROUP BY IDTarjeta
+			   HAVING SUM(Importe_Viaje) > 30)
+	BEGIN
+		
+	END
 
-	SELECT COUNT(LMV.ID) AS Veces, IDTarjeta FROM LM_Viajes AS LMV 
-	INNER JOIN LM_Estaciones AS LME ON LMV.IDEstacionEntrada = LME.ID OR LMV.IDEstacionSalida = LME.ID
-	WHERE LME.Zona_Estacion = 3 OR LME.Zona_Estacion = 4
-	GROUP BY IDTarjeta
-	HAVING COUNT(LMV.ID) > 10
+	ELSE IF EXISTS (SELECT SUM(Importe_Viaje) AS Total, IDTarjeta FROM LM_Viajes
+			   WHERE MONTH(MomentoEntrada) = MONTH(MomentoSalida)
+			   GROUP BY IDTarjeta
+			   HAVING SUM(Importe_Viaje) > 30) --OR @N1 > @N2
+		BEGIN
+			UPDATE LM_Tarjetas
+			SET Saldo = Saldo + @N1
+			FROM LM_Tarjetas
+			WHERE ID = (SELECT IDTarjeta FROM LM_Viajes
+						WHERE MONTH(MomentoEntrada) = MONTH(MomentoSalida)
+						GROUP BY IDTarjeta
+						HAVING SUM(Importe_Viaje) > 30)
+		END
+
+		IF EXISTS(SELECT COUNT(LMV.ID) AS Veces, IDTarjeta FROM LM_Viajes AS LMV 
+				  INNER JOIN LM_Estaciones AS LME ON LMV.IDEstacionEntrada = LME.ID OR LMV.IDEstacionSalida = LME.ID
+				  WHERE LME.Zona_Estacion = 3 OR LME.Zona_Estacion = 4
+				  GROUP BY IDTarjeta
+				  HAVING COUNT(LMV.ID) > 10) --OR @N1 < @N2
+		BEGIN
+			UPDATE LM_Tarjetas
+			SET Saldo = Saldo + @N2
+			FROM LM_Tarjetas
+			WHERE ID = (SELECT IDTarjeta FROM LM_Viajes AS LMV 
+						INNER JOIN LM_Estaciones AS LME ON LMV.IDEstacionEntrada = LME.ID OR LMV.IDEstacionSalida = LME.ID
+						WHERE LME.Zona_Estacion = 3 OR LME.Zona_Estacion = 4
+						GROUP BY IDTarjeta
+						HAVING COUNT(LMV.ID) > 10) 
+		END
+
+	
 GO
+*/
+
+CREATE FUNCTION ComprobarSubida @IDTAR
+
+UPDATE LM_Tarjetas
+SET Saldo += FUNCIONESCALAR(ID, @N1, @N2)
 
 /*
 INTERFAZ
@@ -263,6 +311,7 @@ BEGIN
 DECLARE @Rebaja INT 
 	UPDATE LM_Trenes
 	SET Capacidad = Capacidad - @Rebaja
+	--PRINT('Hola')
 	IF (SELECT * FROM LM_Trenes AS LMT
 		INNER JOIN LM_Recorridos AS LMR ON LMT.ID = LMR.Tren
 		INNER JOIN LM_Estaciones AS LME ON LMR.estacion = LME.ID
@@ -272,7 +321,7 @@ DECLARE @Rebaja INT
 	BEGIN 
 		SET @Rebaja = 6
 	END 
-	ELSE IF (SELECT * FROM LM_Trenes AS LMT
+	IF (SELECT * FROM LM_Trenes AS LMT
 			INNER JOIN LM_Recorridos AS LMR ON LMT.ID = LMR.Tren
 			INNER JOIN LM_Estaciones AS LME ON LMR.estacion = LME.ID
 			INNER JOIN LM_Viajes AS LMV ON LME.ID = LMV.IDEstacionEntrada OR LME.ID = LMV.IDEstacionSalida 
