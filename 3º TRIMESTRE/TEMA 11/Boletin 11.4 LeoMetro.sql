@@ -250,15 +250,15 @@ Salida: @Subida BIT
 --5. Crea una función que nos devuelva verdadero si es posible que un pasajero haya subido a un tren en un 
 --determinado viaje. Se pasará como parámetro el código del viaje y la matrícula del tren.
 GO
-CREATE FUNCTION PasajeroSubidoTren (@CodigoViaje INT, @Matricula INT)
+CREATE FUNCTION PasajeroSubidoTren (@CodigoViaje INT, @Matricula CHAR(7))
 RETURNS BIT AS 
 BEGIN
 DECLARE @Subida BIT
-	IF (SELECT * FROM LM_Trenes AS LMT
+	IF EXISTS (SELECT * FROM LM_Trenes AS LMT
 	   INNER JOIN LM_Recorridos AS LMR ON LMT.ID = LMR.Tren
 	   INNER JOIN LM_Estaciones AS LME ON LMR.estacion = LME.ID
 	   INNER JOIN LM_Viajes AS LMV ON LME.ID = LMV.IDEstacionEntrada
-	   WHERE LMV.ID = @CodigoViaje AND LMT.Matricula = @Matricula) IS NOT NULL
+	   WHERE LMV.ID = @CodigoViaje AND LMT.Matricula = @Matricula)
 	   BEGIN
 		  SET @Subida = 1
 	   END
@@ -269,6 +269,13 @@ DECLARE @Subida BIT
 RETURN @Subida	  
 END
 GO
+
+BEGIN TRANSACTION
+DECLARE @Boolean BIT
+SET @Boolean = dbo.PasajeroSubidoTren (1,'0A0000W')
+PRINT @Boolean
+--ROLLBACK
+--COMMIT
 
 /*
 INTERFAZ
