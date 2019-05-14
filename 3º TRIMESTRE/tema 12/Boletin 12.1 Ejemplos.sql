@@ -144,3 +144,55 @@ SELECT * FROM Palabras
 USE LeoMetroV2
 --6. Comprueba que un pasajero no pueda entrar o salir por la misma estación más de tres
 --veces el mismo día
+SELECT * FROM LM_Viajes
+GO
+CREATE TRIGGER ImpedirPasajero ON LM_Viajes 
+	AFTER INSERT AS
+	BEGIN
+	IF EXISTS(
+			SELECT COUNT(LMV.ID) AS Veces, LMT.ID, LMV.IDEstacionEntrada, DAY(MomentoEntrada) FROM LM_Viajes AS LMV
+			INNER JOIN LM_Tarjetas AS LMT ON LMV.IDTarjeta = LMT.ID
+			WHERE DATEDIFF(DAY, LMV.MomentoEntrada, LMV.MomentoSalida) <= 0
+			GROUP BY LMT.ID, LMV.IDEstacionEntrada, DAY(MomentoEntrada)
+			HAVING COUNT(LMV.ID) > 3)
+			OR
+			EXISTS(
+			SELECT COUNT(LMV.ID) AS Veces, LMT.ID, LMV.IDEstacionSalida, DAY(MomentoSalida) FROM LM_Viajes AS LMV
+			INNER JOIN LM_Tarjetas AS LMT ON LMV.IDTarjeta = LMT.ID
+			WHERE DATEDIFF(DAY, LMV.MomentoEntrada, LMV.MomentoSalida) <= 0
+			GROUP BY LMT.ID, LMV.IDEstacionSalida, DAY(MomentoSalida)
+			HAVING COUNT(LMV.ID) > 3)
+			BEGIN
+				ROLLBACK
+			END
+	END
+GO
+
+--Pruebas
+INSERT INTO LM_Viajes (IDTarjeta, IDEstacionEntrada, IDEstacionSalida, MomentoEntrada, MomentoSalida)
+     VALUES (1, 5, 8, SMALLDATETIMEFROMPARTS(2017,02,25,20,30), SMALLDATETIMEFROMPARTS(2017,02,25,21,30))
+GO
+
+--7. Haz un trigger que al insertar un viaje compruebe que no hay otro viaje simultáneo
+--Cuando se hace un select de inserted o deleted en la tabla que se hace existe el objeto insertado o borrado
+SELECT * FROM LM_Viajes
+GO
+CREATE TRIGGER ViajesSimultaneosNoGracias ON LM_Viajes
+	AFTER INSERT AS
+	BEGIN
+		IF EXISTS(SELECT * FROM LM_Viajes AS LMV
+				  --INNER JOIN inserted AS I ON LMV.ID <> LMV.ID
+				  WHERE ID NOT IN (SELECT ID FROM inserted WHERE MomentoEntrada BETWEEN LMV.MomentoEntrada AND LMV.MomentoSalida AND MomentoSalida BETWEEN LMV.MomentoEntrada AND LMV.MomentoSalida))
+				  BEGIN
+					ROLLBACK
+				  END
+	END
+GO
+
+BEGIN TRANSACTION 
+--Pruebas
+INSERT INTO LM_Viajes (IDTarjeta, IDEstacionEntrada, IDEstacionSalida, MomentoEntrada, MomentoSalida)
+     VALUES (1, 5, 8, CURRENT_TIMESTAMP, DATEADD(HH,2,CURRENT_TIMESTAMP))
+GO
+--ROLLBACK
+--COMMIT
