@@ -178,7 +178,7 @@ GO
 SELECT * FROM LM_Viajes
 order by MomentoSalida DESC
 GO
-ALTER TRIGGER ViajesSimultaneosNoGracias ON LM_Viajes
+CREATE TRIGGER ViajesSimultaneosNoGracias ON LM_Viajes
 	AFTER INSERT AS
 	BEGIN
 		IF EXISTS(SELECT * FROM LM_Viajes AS LMV
@@ -205,3 +205,35 @@ INSERT INTO LM_Viajes (IDTarjeta, IDEstacionEntrada, IDEstacionSalida, MomentoEn
 GO
 --ROLLBACK
 --COMMIT
+
+--8. Queremos evitar que se introduzcan palabras que terminen en “azo”
+SELECT * FROM Palabras
+GO
+CREATE TRIGGER EvitarPalabrasAzo ON Palabras
+	AFTER INSERT AS
+	BEGIN
+		IF EXISTS(SELECT * FROM inserted WHERE Palabra LIKE '%azo')
+		BEGIN
+			ROLLBACK
+		END
+	END
+GO
+
+--Pruebas
+BEGIN TRANSACTION
+INSERT Palabras (Palabra)
+VALUES ('Futbolazo')
+--ROLLBACK
+--COMMIT
+
+INSERT Palabras (Palabra)
+VALUES ('Parapente')
+
+INSERT Palabras (Palabra)
+VALUES ('Golazo')
+
+USE LeoFest
+--Se usa LeoFest
+--9.  Cuando se inserte una nueva actuación de una banda hemos de comprobar que la banda
+--no se ha disuelto en esa fecha. --10. Comprueba mediante un trigger que en una edición no actúan más de tres bandas de la
+--misma categoría. 
