@@ -176,15 +176,24 @@ GO
 --7. Haz un trigger que al insertar un viaje compruebe que no hay otro viaje simultáneo
 --Cuando se hace un select de inserted o deleted en la tabla que se hace existe el objeto insertado o borrado
 SELECT * FROM LM_Viajes
+order by MomentoSalida DESC
 GO
-CREATE TRIGGER ViajesSimultaneosNoGracias ON LM_Viajes
+ALTER TRIGGER ViajesSimultaneosNoGracias ON LM_Viajes
 	AFTER INSERT AS
 	BEGIN
 		IF EXISTS(SELECT * FROM LM_Viajes AS LMV
-				  --INNER JOIN inserted AS I ON LMV.ID <> LMV.ID
-				  WHERE ID NOT IN (SELECT ID FROM inserted WHERE MomentoEntrada BETWEEN LMV.MomentoEntrada AND LMV.MomentoSalida AND MomentoSalida BETWEEN LMV.MomentoEntrada AND LMV.MomentoSalida))
+				  CROSS JOIN inserted AS I 
+				  WHERE I.ID <> LMV.ID AND --IDViaje sea diferente al insertado
+				  I.IDTarjeta = LMV.IDTarjeta AND --Misma Persona 
+				  (I.MomentoEntrada BETWEEN LMV.MomentoEntrada AND LMV.MomentoSalida OR --MomentoEntrada este en el rango prohibido 
+				  I.MomentoSalida BETWEEN LMV.MomentoEntrada AND LMV.MomentoSalida OR --MomentoSalida este en el rango prohibido 
+				  I.MomentoEntrada < LMV.MomentoEntrada AND I.MomentoSalida > LMV.MomentoSalida)) --Que MomentoEntrada sea menor y MomentoSalida mayor
 				  BEGIN
 					ROLLBACK
+					RAISERROR ('Viajes rango inadecuado.', -- Message text.  
+					 16, -- Severity.  
+					 1 -- State.  
+					 )	 
 				  END
 	END
 GO
@@ -192,7 +201,7 @@ GO
 BEGIN TRANSACTION 
 --Pruebas
 INSERT INTO LM_Viajes (IDTarjeta, IDEstacionEntrada, IDEstacionSalida, MomentoEntrada, MomentoSalida)
-     VALUES (1, 5, 8, CURRENT_TIMESTAMP, DATEADD(HH,2,CURRENT_TIMESTAMP))
+     VALUES (1, 2, 4, CURRENT_TIMESTAMP, DATEADD(HH,2,CURRENT_TIMESTAMP))
 GO
 --ROLLBACK
 --COMMIT
