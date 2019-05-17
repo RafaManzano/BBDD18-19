@@ -8,7 +8,7 @@ SELECT OrderID, COUNT(DISTINCT ProductID) FROM [Order Details]
 GROUP BY OrderID
 HAVING COUNT(DISTINCT ProductID) > 10
 GO
-ALTER TRIGGER PedidosMenores10 ON [Order Details]
+CREATE TRIGGER PedidosMenores10 ON [Order Details]
 	AFTER INSERT, UPDATE AS
 	BEGIN 
 		IF EXISTS (SELECT * FROM [Order Details]
@@ -54,7 +54,7 @@ INSERT INTO [Order Details] VALUES
 --COMMIT
 
 UPDATE [Order Details] set OrderID = 12001
--- sELECT * fROM [Order Details]
+-- SELECT * FROM [Order Details]
 	wHERE OrderID < 10249
 
 --2. Haz un trigger para que un cliente no pueda hacer más de 10 pedidos al año (años naturales) de la misma categoría
@@ -62,11 +62,30 @@ GO
 CREATE TRIGGER ClientesNoTanFieles ON Orders
 	AFTER INSERT, UPDATE AS
 	BEGIN
-		SELECT * FROM Orders AS O
+		IF EXISTS (SELECT * FROM Orders AS O
 		INNER JOIN [Order Details] AS OD ON O.OrderID = OD.OrderID
 		INNER JOIN Products AS P ON OD.ProductID = P.ProductID
-		WHERE P.CategoryID 
+		WHERE O.CustomerID = (SELECT O.CustomerID FROM inserted AS O
+							 INNER JOIN [Order Details] AS OD ON O.OrderID = OD.OrderID
+							 INNER JOIN Products AS P ON OD.ProductID = P.ProductID) AND
+			  YEAR(O.OrderDate) = (SELECT YEAR(O.OrderDate) FROM inserted AS O
+							       INNER JOIN [Order Details] AS OD ON O.OrderID = OD.OrderID
+							       INNER JOIN Products AS P ON OD.ProductID = P.ProductID) AND
+			  P.CategoryID = (SELECT P.CategoryID FROM inserted AS O
+							  INNER JOIN [Order Details] AS OD ON O.OrderID = OD.OrderID
+							  INNER JOIN Products AS P ON OD.ProductID = P.ProductID)
 		GROUP BY O.CustomerID
-		HAVING COUNT(O.OrderID) > 10
+		HAVING COUNT(O.OrderID) > 10)	
+	END
+GO
+
+--3. Haz un trigger que no permita que un empleado sea superior de otro (ReportsTo) si el segundo es su superior 
+--(en uno o varios niveles).
+GO
+CREATE TRIGGER NopuedeSerSuperior ON Employees
+	AFTER INSERT, UPDATE AS
+	BEGIN
+		SELECT * FROM Employees AS Jefe
+		INNER JOIN Employees AS Subordinado ON 
 	END
 GO
